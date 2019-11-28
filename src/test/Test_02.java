@@ -10,10 +10,10 @@ import main.Fastable;
 import test.bean.People;
 
 /**
- * Test_01
- * 有唯一列的List<bean>数据集
+ * Test_02
+ * 无唯一列的List<bean>数据集
  */
-public class Test_01 {
+public class Test_02 {
 
     private static Date date(String dateStr) throws ParseException {
         return new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
@@ -26,7 +26,7 @@ public class Test_01 {
         list.add(new People("坂田银时", 38, new Date(), 'M'));
         list.add(new People("神乐", 14, date("1999-03-09"), 'F'));
         list.add(new People("志村新八", 14, date("1999-03-09"), 'M'));
-        Fastable tp = new Fastable(list, People.class, "name");
+        Fastable tp = new Fastable(list, People.class);
         System.out.println(tp.toString());
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 

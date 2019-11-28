@@ -2,6 +2,7 @@ package main;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import exception.NullUniquePropertyValueException;
 import exception.RepeatKeyException;
 
 /**
@@ -21,17 +23,22 @@ public class Fastable {
     private Map<RawDataEntry, LinkedIdSet> graphMap;
     private String uniqueProperty;
     private Set<Integer> tempFindIds;
+    private final static String DFT_ROWID = ".ROWID";
+    private int tempRowIndex = 0;
+
+    public Fastable(List<?> javabeans, Class<?> clazz) {
+        this(javabeans, clazz, null);
+    }
 
     public Fastable(List<?> javabeans, Class<?> clazz, String uniqueProperty) {
         if (javabeans.size() == 0) {
             return;
         }
-        uniqueProperty = Utils.toUpperFristChar(uniqueProperty);
         if ("".equals(uniqueProperty)) {
             System.err.println("唯一列不可以是空字符");
             return;
         }
-        this.uniqueProperty = uniqueProperty;
+        this.uniqueProperty = uniqueProperty == null? DFT_ROWID : Utils.toUpperFristChar(uniqueProperty);
         Map<String, Method> propRMethods; // 属性名: 方法类
         try {
             propRMethods = filterPropReadMethods(Utils.getBeanPropDesc(clazz));
@@ -44,30 +51,24 @@ public class Fastable {
         this.graphMap = new HashMap<RawDataEntry, LinkedIdSet>(capacity + 1);
         for (Object bean : javabeans) {
             // 唯一列（索引列）的值
-            Object indexVal = null;
+            Object indexVal;
             try {
-                indexVal = propRMethods.get(uniqueProperty).invoke(bean);
-            } catch (Exception e1) {
-                e1.printStackTrace();
-                return;
+                indexVal = getIndexValue(propRMethods, bean);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullUniquePropertyValueException e2) {
+                e2.printStackTrace(); return;
             }
-            if (indexVal == null) {
-                System.err.println("{" + uniqueProperty + "}唯一列值出现空值");
-                return;
-            }
-            RawDataEntry indexEntry = new RawDataEntry(uniqueProperty, indexVal, true);
+            RawDataEntry indexEntry = new RawDataEntry(this.uniqueProperty, indexVal, true);
             try {
                 putUniqueData(indexEntry);
             } catch (RepeatKeyException e1) {
-                e1.printStackTrace();
-                return;
+                e1.printStackTrace(); return;
             }
             int indexEntryId = getDataEntrySize() - 1;
 
             // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
             for (Map.Entry<String, Method> propMethod : propRMethods.entrySet()) {
                 String prop = propMethod.getKey(); // 属性
-                if (prop.equals(uniqueProperty))
+                if (prop.equals(this.uniqueProperty))
                     continue;
                 Object val = null; // 属性值
                 Method m = propMethod.getValue();
@@ -83,6 +84,23 @@ public class Fastable {
             }
             // System.out.println("----------------------------------");
         }
+    }
+
+    private Object getIndexValue(Map<String, Method> propRMethods, Object bean)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+            NullUniquePropertyValueException {
+        Object indexVal = null;
+        if (!DFT_ROWID.equals(this.uniqueProperty)) {
+            indexVal = propRMethods.get(this.uniqueProperty).invoke(bean);
+        } else {
+            indexVal = this.tempRowIndex;
+            this.tempRowIndex ++;
+        }
+        
+        if (indexVal == null) {
+            throw new NullUniquePropertyValueException("{" + this.uniqueProperty + "}唯一列值出现空值");
+        }
+        return indexVal;
     }
 
     private void putRepeatableData(RawDataEntry indexEntry, int indexEntryId, RawDataEntry dataEntry) {
@@ -179,6 +197,9 @@ public class Fastable {
         for (Integer eid : entryIds) {
             RawDataEntry dEntry = this.dataEntrys.get(eid);
             String prop = dEntry.getKey();
+            if (DFT_ROWID.equals(this.uniqueProperty) && DFT_ROWID.equals(prop)) {
+                continue;
+            }
             Object val = dEntry.getVal();
             PropertyDescriptor propDesc;
             try {
