@@ -17,8 +17,9 @@ import exception.RepeatKeyException;
 /**
  * Fastable
  */
-public class Fastable {
+public class Fastable<T> {
 
+    private Class<T> classT;
     List<RawDataEntry> dataEntrys;
     private Map<RawDataEntry, LinkedIdSet> graphMap;
     private String uniqueProperty;
@@ -26,11 +27,11 @@ public class Fastable {
     private final static String DFT_ROWID = ".ROWID";
     private int tempRowIndex = 0;
 
-    public Fastable(List<?> javabeans, Class<?> clazz) {
+    public Fastable(List<T> javabeans, Class<T> clazz) {
         this(javabeans, clazz, null);
     }
 
-    public Fastable(List<?> javabeans, Class<?> clazz, String uniqueProperty) {
+    public Fastable(List<T> javabeans, Class<T> clazz, String uniqueProperty) {
         if (javabeans.size() == 0) {
             return;
         }
@@ -38,10 +39,11 @@ public class Fastable {
             System.err.println("唯一列不可以是空字符");
             return;
         }
+        this.classT = clazz;
         this.uniqueProperty = uniqueProperty == null? DFT_ROWID : Utils.toUpperFristChar(uniqueProperty);
         Map<String, Method> propRMethods; // 属性名: 方法类
         try {
-            propRMethods = filterPropReadMethods(Utils.getBeanPropDesc(clazz));
+            propRMethods = Utils.getBeanReadMethods(Utils.getBeanPropDesc(this.classT));
         } catch (IntrospectionException e1) {
             e1.printStackTrace();
             return;
@@ -131,17 +133,6 @@ public class Fastable {
         return this.dataEntrys.size();
     }
 
-    private Map<String, Method> filterPropReadMethods(PropertyDescriptor[] propDesc) {
-        Map<String, Method> prm = new HashMap<String, Method>();
-        for (PropertyDescriptor pd : propDesc) {
-            Method rm = pd.getReadMethod();
-            if (rm.getName().equals("getClass"))
-                continue;
-            prm.put(rm.getName().substring(3), rm);
-        }
-        return prm;
-    }
-
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
@@ -151,7 +142,7 @@ public class Fastable {
         return sb.toString();
     }
 
-    public Fastable query(String property, Object value) {
+    public Fastable<T> query(String property, Object value) {
         property = Utils.toUpperFristChar(property);
         RawDataEntry qEntry = new RawDataEntry(property, value);
         Set<Integer> findIds = new HashSet<Integer>();
@@ -169,14 +160,14 @@ public class Fastable {
         return this;
     }
 
-    public List<? extends Object> fetch(Class<?> clazz) {
-        List<Object> res = new ArrayList<>();
+    public List<T> fetch() {
+        List<T> res = new ArrayList<>();
         for (Integer indexId : this.tempFindIds) {
             RawDataEntry iEntry = this.dataEntrys.get(indexId);
             Set<Integer> dEntryIds = this.graphMap.get(iEntry).getAllIds();
-            Object resObj = null;
+            T resObj = null;
             try {
-                resObj = generateObj(clazz, dEntryIds);
+                resObj = generateObj(this.classT, dEntryIds);
             } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
                 // return null;
@@ -187,12 +178,12 @@ public class Fastable {
         return res;
     }
 
-    public List<? extends Object> fetchQuery(Class<?> clazz, String property, Object value) {
-        return this.query(property, value).fetch(clazz);
+    public List<T> fetchQuery(String property, Object value) {
+        return this.query(property, value).fetch();
     }
 
-    private Object generateObj(Class<?> clazz, Set<Integer> entryIds) throws InstantiationException, IllegalAccessException {
-        Object resObj;
+    private T generateObj(Class<T> clazz, Set<Integer> entryIds) throws InstantiationException, IllegalAccessException {
+        T resObj;
         resObj = clazz.newInstance();
         for (Integer eid : entryIds) {
             RawDataEntry dEntry = this.dataEntrys.get(eid);
