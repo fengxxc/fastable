@@ -6,6 +6,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,21 +21,48 @@ public class Utils {
         return propDesc;
     }
 
-    public static Map<String, Method> getBeanReadMethods(PropertyDescriptor[] propDesc) {
+    public static Map<String, Method> getPropReadMethods(PropertyDescriptor[] propDesc) {
         Map<String, Method> prm = new HashMap<String, Method>();
         for (PropertyDescriptor pd : propDesc) {
             Method rm = pd.getReadMethod();
             if (rm.getName().equals("getClass"))
                 continue;
-            prm.put(rm.getName().substring(3), rm);
+            prm.put(Utils.fristChartoLower(rm.getName().substring(3)), rm);
         }
         return prm;
     }
 
-    public static String toUpperFristChar(String string) {
-        char[] charArray = string.toCharArray();
-        charArray[0] -= 32;
-        return String.valueOf(charArray);
+    public static String fristChartoLower(String string) {
+        if (65 <= string.charAt(0) && string.charAt(0) <= 90) {
+            char[] charArr = string.toCharArray();
+            charArr[0] += 32;
+            return String.valueOf(charArr);
+        }
+        return string;
+    }
+
+    public static String fristChartoUpper(String string) {
+        if (97 <= string.charAt(0) && string.charAt(0) <= 122) {
+            char[] charArr = string.toCharArray();
+            charArr[0] -= 32;
+            return String.valueOf(charArr);
+        }
+        return string;
+    }
+
+    public static boolean nullOrEmptyStr(String string) {
+        return string == null || "".equals(string);
+    }
+
+    public static boolean nullOrZeroSize(List<?> list) {
+        return list == null || list.size() == 0;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(fristChartoUpper("qwer"));
+        System.out.println(fristChartoLower("QWER"));
+        System.out.println(fristChartoLower(".QWER"));
+        System.out.println(fristChartoUpper(".QWER"));
     }
 
 }

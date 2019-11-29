@@ -20,13 +20,13 @@ public class Test_02 {
     }
 
     public static void main(final String[] args) throws ParseException {
-        long start = System.currentTimeMillis(); // 获取开始时间
-
         final List<People> list = new ArrayList<People>();
         list.add(new People("坂田银时", 38, new Date(), 'M'));
         list.add(new People("神乐", 14, date("1999-03-09"), 'F'));
         list.add(new People("志村新八", 14, date("1999-03-09"), 'M'));
-        Fastable<People> tp = new Fastable<People>(list, People.class);
+
+        long start = System.currentTimeMillis(); // 获取开始时间
+        Fastable<People> tp = new Fastable<People>(list);
         System.out.println(tp.toString());
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
