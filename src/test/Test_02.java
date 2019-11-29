@@ -21,9 +21,9 @@ public class Test_02 {
 
     public static void main(final String[] args) throws ParseException {
         final List<People> list = new ArrayList<People>();
-        list.add(new People("坂田银时", 38, new Date(), 'M'));
-        list.add(new People("神乐", 14, date("1999-03-09"), 'F'));
-        list.add(new People("志村新八", 14, date("1999-03-09"), 'M'));
+        list.add(new People("坂田银时", 38, "万事屋阿银", new Date(), 'M'));
+        list.add(new People("神乐", 14, "万事屋阿银", date("1999-03-09"), 'F'));
+        list.add(new People("志村新八", 14, "万事屋阿银", date("1999-03-09"), 'M'));
 
         long start = System.currentTimeMillis(); // 获取开始时间
         Fastable<People> tp = new Fastable<People>(list);

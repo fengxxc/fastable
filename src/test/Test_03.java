@@ -39,15 +39,15 @@ public class Test_03 {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         list.add(new HashMap<String, Object>() {
             private static final long serialVersionUID = 1L; {
-            put("name", "坂田银时"); put("old", 38); put("birth", new Date()); put("gender", 'M');
+            put("name", "坂田银时"); put("old", 38); put("unit", "万事屋阿银"); put("birth", new Date()); put("gender", 'M');
         }});
         list.add(new HashMap<String, Object>() {
             private static final long serialVersionUID = 1L; {
-            put("name", "神乐"); put("old", 14); put("birth", date("1999-03-09")); put("gender", 'F');
+            put("name", "神乐"); put("old", 14); put("unit", "万事屋阿银"); put("birth", date("1999-03-09")); put("gender", 'F');
         }});
         list.add(new HashMap<String, Object>() {
             private static final long serialVersionUID = 1L; {
-            put("name", "志村新八"); put("old", 14); put("birth", date("1999-03-09")); put("gender", 'M');
+            put("name", "志村新八"); put("old", 14); put("unit", "万事屋阿银"); put("birth", date("1999-03-09")); put("gender", 'M');
         }});
 
         long start = System.currentTimeMillis(); // 获取开始时间

@@ -8,15 +8,17 @@ import java.util.Date;
 public class People {
     private String name;
     private int old;
+    private String unit;
     private Date birth;
     private char gender;
 
     public People() {
     }
 
-    public People(String name, int old, Date birth, char gender) {
+    public People(String name, int old, String unit, Date birth, char gender) {
         setName(name);
         setOld(old);
+        setUnit(unit);
         setBirth(birth);
         setGender(gender);
     }
@@ -35,6 +37,14 @@ public class People {
 
     public void setOld(final int old) {
         this.old = old;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public Date getBirth() {

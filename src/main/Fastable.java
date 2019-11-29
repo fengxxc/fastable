@@ -177,12 +177,16 @@ public class Fastable<T> {
         }
         RawDataEntry qEntry = new RawDataEntry(property, value);
         Set<Integer> findIds = new HashSet<Integer>();
+        LinkedIdSet linkedIdSet = this.graphMap.get(qEntry);
+        if (linkedIdSet == null) {
+            this.tempFindIds = null;
+            return this;
+        }
         if (this.uniqueProperty.equals(property)) {
             // 根据唯一列的查找
-            findIds.add(this.graphMap.get(qEntry).getId());
+            findIds.add(linkedIdSet.getId());
         } else {
             // 根据非唯一列的查找
-            LinkedIdSet linkedIdSet = this.graphMap.get(qEntry);
             findIds = linkedIdSet.getLinkedIds();
         }
         if (this.tempFindIds != null) 
@@ -194,6 +198,9 @@ public class Fastable<T> {
 
     public List<T> fetch() {
         List<T> res = new ArrayList<>();
+        if (this.tempFindIds == null) {
+            return res;
+        }
         for (Integer indexId : this.tempFindIds) {
             RawDataEntry iEntry = this.dataEntrys.get(indexId);
             Set<Integer> dEntryIds = this.graphMap.get(iEntry).getAllIds();
