@@ -67,7 +67,7 @@ public class Test_03 {
             System.out.println(p1.toString());
 
         System.out.println("-------gender: 'M' and birth: 1999-03-09-------");
-        List<Map<String, Object>> query2 = tp.query("gender", 'M').query("birth", date("1999-03-09")).fetch();
+        List<Map<String, Object>> query2 = tp.query("gender", 'M').and("birth", date("1999-03-09")).fetch();
         for (Map<String, Object> p2 : query2)
             System.out.println(p2.toString());
 

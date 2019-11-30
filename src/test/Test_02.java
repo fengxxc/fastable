@@ -39,7 +39,7 @@ public class Test_02 {
         for (People p1 : query1) System.out.println(p1.toString());
 
         System.out.println("-------gender: 'M' and birth: 1999-03-09-------");
-        List<People> query2 = tp.query("gender", 'M').query("birth", date("1999-03-09")).fetch();
+        List<People> query2 = tp.query("gender", 'M').and("birth", date("1999-03-09")).fetch();
         for (People p2 : query2) System.out.println(p2.toString());
 
         long end = System.currentTimeMillis(); // 获取结束时间

@@ -2,11 +2,11 @@ package main;
 
 public class RawDataEntry {
     private static final String INDEX = "_index_";
-    private Entry entry;
+    private Entry<String, Object> entry;
     private boolean index;
 
     public RawDataEntry(Object indexVal) {
-        this.entry = new Entry(INDEX, index);
+        this.entry = new Entry<String, Object>(INDEX, indexVal);
         this.index = true;
     }
 
@@ -15,7 +15,7 @@ public class RawDataEntry {
     }
 
     public RawDataEntry(String key, Object val, boolean index) {
-        this.entry = new Entry(key, val);
+        this.entry = new Entry<String, Object>(key, val);
         this.index = false;
     }
 
@@ -56,23 +56,23 @@ public class RawDataEntry {
         return e.getKey().equals(getKey()) && e.getVal().equals(getVal());
     }
 
-    class Entry {
-        private String k;
-        private Object v;
-        public Entry(String k, Object v) {
+    class Entry<K, V> {
+        private K k;
+        private V v;
+        public Entry(K k, V v) {
             this.k = k;
             this.v = v;
         }
-        public String getKey() {
+		public K getKey() {
             return k;
         }
-        public Object getVal() {
+        public V getVal() {
             return v;
         }
         
         @Override
         public String toString() {
-            return "#" + this.hashCode() + "#" + getKey() + "_" + getVal().toString() + "";
+            return "" + getKey().toString() + "_" + getVal().toString() + "";
         }
     }
 }

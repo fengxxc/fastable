@@ -10,9 +10,9 @@ import main.Fastable;
 import test.bean.People;
 
 /**
- * Test_04 大量数据
+ * Test_05 逻辑“或”
  */
-public class Test_04 {
+public class Test_05 {
 
     private static Date date(String dateStr) throws ParseException {
         return new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
@@ -43,10 +43,15 @@ public class Test_04 {
         for (People p1 : query1)
             System.out.println(p1.toString());
 
-        System.out.println("-------gender: 'M' and birth: 1999-03-09-------");
-        List<People> query2 = tp.query("gender", 'M').and("birth", date("1999-03-09")).fetch();
+        System.out.println("-------unit: '快援队' and birth: 1997-06-01-------");
+        List<People> query2 = tp.query("unit", "快援队").and("birth", date("1997-06-01")).fetch();
         for (People p2 : query2)
             System.out.println(p2.toString());
+
+        System.out.println("-------unit: '登势酒吧' or unit: 万事屋阿银-------");
+        List<People> query3 = tp.query("unit", "登势酒吧").or("unit", "万事屋阿银").fetch();
+        for (People p3 : query3)
+            System.out.println(p3.toString());
 
         long end = System.currentTimeMillis(); // 获取结束时间
         System.out.println("程序运行时间： " + (end - start) + "ms");

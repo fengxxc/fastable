@@ -19,10 +19,23 @@ public class Finder<T> {
     
     public Finder(Fastable<T> fstb, String fProperty, Object fValue) {
         this(fstb);
-        this.query(fProperty, fValue);
+        this.and(fProperty, fValue);
     }
 
-    public Finder<T> query(String property, Object value) {
+    public Finder<T> and(String property, Object value) {
+        Set<Integer> findIds = findLinkedIds(property, value);
+        if (findIds.size() == 0) {
+            this.tempFindIds = null;
+            return this;
+        }
+        if (this.tempFindIds != null) 
+            this.tempFindIds.retainAll(findIds);
+        else 
+            this.tempFindIds = findIds;
+        return this;
+    }
+
+    private Set<Integer> findLinkedIds(String property, Object value) {
         if (Fastable.BEAN.equals(fstb.getRawDataType())) {
             property = Utils.fristChartoLower(property);
         }
@@ -30,8 +43,7 @@ public class Finder<T> {
         Set<Integer> findIds = new HashSet<Integer>();
         LinkedIdSet linkedIdSet = fstb.getGraphMap().get(qEntry);
         if (linkedIdSet == null) {
-            this.tempFindIds = null;
-            return this;
+            return findIds;
         }
         if (fstb.getUniqueProperty().equals(property)) {
             // 根据唯一列的查找
@@ -40,8 +52,16 @@ public class Finder<T> {
             // 根据非唯一列的查找
             findIds = linkedIdSet.getLinkedIds();
         }
+        return findIds;
+    }
+
+    public Finder<T> or(String property, Object value) {
+        Set<Integer> findIds = findLinkedIds(property, value);
+        if (findIds.size() == 0) {
+            return this;
+        }
         if (this.tempFindIds != null) 
-            this.tempFindIds.retainAll(findIds);
+            this.tempFindIds.addAll(findIds);
         else 
             this.tempFindIds = findIds;
         return this;
@@ -60,7 +80,7 @@ public class Finder<T> {
                 resObj = fstb.generateObj(dEntryIds);
             } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
-                // return null;
+                return res;
             }
             res.add(resObj);
         }
@@ -69,6 +89,6 @@ public class Finder<T> {
     }
     
     public List<T> fetchQuery(String property, Object value) {
-        return this.query(property, value).fetch();
+        return this.and(property, value).fetch();
     }
 }
