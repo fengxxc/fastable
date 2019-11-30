@@ -1,5 +1,6 @@
 package test;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,7 +21,7 @@ public class Test_04 {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws ParseException {
         List<People> list = (List<People>) fileUtils.readCSVToBeans(
-                    "E://github//fastable//bin//test//test-data.csv",
+                    new File("").getAbsolutePath() + File.separator + "bin//test//test-data.csv",
                     People.class
                 );
         for (People people : list) {
@@ -37,7 +38,7 @@ public class Test_04 {
         for (People p0 : query0)
             System.out.println(p0.toString());
         
-        System.out.println("-------birth: 1999-03-09-------");
+        System.out.println("-------birth: 1907-11-04-------");
         List<People> query1 = tp.fetchQuery("birth", date("1907-11-04"));
         for (People p1 : query1)
             System.out.println(p1.toString());

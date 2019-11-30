@@ -22,9 +22,12 @@ public class Fastable<T> {
     List<RawDataEntry> dataEntrys;
     private Map<RawDataEntry, LinkedIdSet> graphMap;
     private String uniqueProperty;
-    private Set<Integer> tempFindIds;
-    private final static String DFT_ROWID = ".ROWID";
     private int tempRowIndex = 0;
+    private String rawDataType;
+
+    private final static String DFT_ROWID = ".ROWID";
+    public final static String MAP = "MAP";
+    public final static String BEAN = "BEAN";
 
     public Fastable(List<T> data) {
         this(data, null);
@@ -36,8 +39,10 @@ public class Fastable<T> {
         this.classT = (Class<T>) data.get(0).getClass();
         this.uniqueProperty = Utils.nullOrEmptyStr(uniqueProperty)? DFT_ROWID : uniqueProperty;
         if (Map.class.isAssignableFrom(this.classT)) {
+            this.rawDataType = MAP;
             initForMap((List<Map<String, Object>>) data);
         } else {
+            this.rawDataType = BEAN;
             initForJavaBean(data);
         }
     }
@@ -134,6 +139,22 @@ public class Fastable<T> {
         }
     }
 
+    public String getRawDataType() {
+        return this.rawDataType;
+    }
+
+    public Map<RawDataEntry, LinkedIdSet> getGraphMap() {
+        return this.graphMap;
+    }
+
+    public List<RawDataEntry> getDataEntrys() {
+        return dataEntrys;
+    }
+
+    public String getUniqueProperty() {
+        return uniqueProperty;
+    }
+
     private void putRepeatableData(RawDataEntry indexEntry, int indexEntryId, RawDataEntry dataEntry) {
         LinkedIdSet dataLinkedIds = null;
         if (this.graphMap.containsKey(dataEntry)) {
@@ -171,59 +192,13 @@ public class Fastable<T> {
         return sb.toString();
     }
 
-    public Fastable<T> query(String property, Object value) {
-        if (!Map.class.isAssignableFrom(this.classT)) {
-            property = Utils.fristChartoLower(property);
-        }
-        RawDataEntry qEntry = new RawDataEntry(property, value);
-        Set<Integer> findIds = new HashSet<Integer>();
-        LinkedIdSet linkedIdSet = this.graphMap.get(qEntry);
-        if (linkedIdSet == null) {
-            this.tempFindIds = null;
-            return this;
-        }
-        if (this.uniqueProperty.equals(property)) {
-            // 根据唯一列的查找
-            findIds.add(linkedIdSet.getId());
-        } else {
-            // 根据非唯一列的查找
-            findIds = linkedIdSet.getLinkedIds();
-        }
-        if (this.tempFindIds != null) 
-            this.tempFindIds.retainAll(findIds);
-        else 
-            this.tempFindIds = findIds;
-        return this;
-    }
-
-    public List<T> fetch() {
-        List<T> res = new ArrayList<>();
-        if (this.tempFindIds == null) {
-            return res;
-        }
-        for (Integer indexId : this.tempFindIds) {
-            RawDataEntry iEntry = this.dataEntrys.get(indexId);
-            Set<Integer> dEntryIds = this.graphMap.get(iEntry).getAllIds();
-            T resObj = null;
-            try {
-                resObj = generateObj(dEntryIds);
-            } catch (InstantiationException | IllegalAccessException e) {
-                e.printStackTrace();
-                // return null;
-            }
-            res.add(resObj);
-        }
-        this.tempFindIds = null;
-        return res;
-    }
-
-    public List<T> fetchQuery(String property, Object value) {
-        return this.query(property, value).fetch();
+    public Finder<T> query(String property, Object value) {
+        return new Finder<T>(this, property, value);
     }
 
     @SuppressWarnings("unchecked")
-    private T generateObj(Set<Integer> entryIds) throws InstantiationException, IllegalAccessException {
-        if (Map.class.isAssignableFrom(this.classT)) {
+    public T generateObj(Set<Integer> entryIds) throws InstantiationException, IllegalAccessException {
+        if (MAP.equals(this.rawDataType)) {
             Map<String, Object> resObj = new HashMap<String, Object>((int) (entryIds.size()/0.75F + 1.0F));
             for (Integer eid : entryIds) {
                 RawDataEntry dEntry = this.dataEntrys.get(eid);
@@ -255,5 +230,9 @@ public class Fastable<T> {
             }
             return resObj;
         }
+    }
+
+    public List<T> fetchQuery(String property, Object value) {
+        return this.query(property, value).fetch();
     }
 }
