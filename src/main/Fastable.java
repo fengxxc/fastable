@@ -22,7 +22,7 @@ public class Fastable<T> {
     List<RawDataEntry> dataEntrys;
     private Map<RawDataEntry, LinkedIdSet> graphMap;
     private String uniqueProperty;
-    private int tempRowIndex = 0;
+    private long tempRowIndex = 0;
     private String rawDataType;
 
     private final static String DFT_ROWID = ".ROWID";

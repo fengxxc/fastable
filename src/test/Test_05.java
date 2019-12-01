@@ -10,7 +10,8 @@ import main.Fastable;
 import test.bean.People;
 
 /**
- * Test_05 逻辑“或”
+ * Test_05
+ * 逻辑“或”、“非”
  */
 public class Test_05 {
 
@@ -48,10 +49,15 @@ public class Test_05 {
         for (People p2 : query2)
             System.out.println(p2.toString());
 
-        System.out.println("-------unit: '登势酒吧' or unit: 万事屋阿银-------");
+        System.out.println("-------unit: '登势酒吧' or unit: '万事屋阿银'-------");
         List<People> query3 = tp.query("unit", "登势酒吧").or("unit", "万事屋阿银").fetch();
         for (People p3 : query3)
             System.out.println(p3.toString());
+
+        System.out.println("-------unit: '登势酒吧' or unit: '万事屋阿银' not gender: 'M'-------");
+        List<People> query4 = tp.query("unit", "登势酒吧").or("unit", "万事屋阿银").not("gender", "M").fetch();
+        for (People p4 : query4)
+            System.out.println(p4.toString());
 
         long end = System.currentTimeMillis(); // 获取结束时间
         System.out.println("程序运行时间： " + (end - start) + "ms");

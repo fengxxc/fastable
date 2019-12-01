@@ -22,19 +22,6 @@ public class Finder<T> {
         this.and(fProperty, fValue);
     }
 
-    public Finder<T> and(String property, Object value) {
-        Set<Integer> findIds = findLinkedIds(property, value);
-        if (findIds.size() == 0) {
-            this.tempFindIds = null;
-            return this;
-        }
-        if (this.tempFindIds != null) 
-            this.tempFindIds.retainAll(findIds);
-        else 
-            this.tempFindIds = findIds;
-        return this;
-    }
-
     private Set<Integer> findLinkedIds(String property, Object value) {
         if (Fastable.BEAN.equals(fstb.getRawDataType())) {
             property = Utils.fristChartoLower(property);
@@ -55,15 +42,38 @@ public class Finder<T> {
         return findIds;
     }
 
+    public Finder<T> and(String property, Object value) {
+        Set<Integer> findIds = findLinkedIds(property, value);
+        if (findIds.isEmpty()) {
+            this.tempFindIds = null;
+            return this;
+        }
+        if (this.tempFindIds != null) 
+            this.tempFindIds.retainAll(findIds);
+        else 
+            this.tempFindIds = findIds;
+        return this;
+    }
+
     public Finder<T> or(String property, Object value) {
         Set<Integer> findIds = findLinkedIds(property, value);
-        if (findIds.size() == 0) {
+        if (findIds.isEmpty()) {
             return this;
         }
         if (this.tempFindIds != null) 
             this.tempFindIds.addAll(findIds);
         else 
             this.tempFindIds = findIds;
+        return this;
+    }
+
+    public Finder<T> not(String property, Object value) {
+        Set<Integer> findIds = findLinkedIds(property, value);
+        if (findIds.isEmpty()) {
+            return this;
+        }
+        if (this.tempFindIds != null) 
+            this.tempFindIds.removeAll(findIds);
         return this;
     }
 

@@ -10,7 +10,8 @@ import main.Fastable;
 import test.bean.People;
 
 /**
- * Test_04 大量数据
+ * Test_04
+ * 大量数据
  */
 public class Test_04 {
 
