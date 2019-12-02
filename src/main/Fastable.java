@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import exception.RepeatKeyException;
 
@@ -20,7 +21,7 @@ public class Fastable<T> {
 
     private Class<T> classT;
     List<RawDataEntry> dataEntrys;
-    private Map<RawDataEntry, LinkedIdSet> graphMap;
+    private Map<RawDataEntry, LinkedIdSet> pv2linkedMap;
     private String uniqueProperty;
     private long tempRowIndex = 0;
     private String rawDataType;
@@ -30,27 +31,35 @@ public class Fastable<T> {
     public final static String BEAN = "BEAN";
 
     public Fastable(List<T> data) {
-        this(data, null);
+        this(data, null, false);
+    }
+
+    public Fastable(List<T> data, String uniqueProperty) {
+        this(data, uniqueProperty, false);
+    }
+
+    public Fastable(List<T> data, boolean order) {
+        this(data, null, order);
     }
     
     @SuppressWarnings("unchecked")
-    public Fastable(List<T> data, String uniqueProperty) {
+    public Fastable(List<T> data, String uniqueProperty, boolean order) {
         if (Utils.nullOrZeroSize(data)) return;
         this.classT = (Class<T>) data.get(0).getClass();
         this.uniqueProperty = Utils.nullOrEmptyStr(uniqueProperty)? DFT_ROWID : uniqueProperty;
         if (Map.class.isAssignableFrom(this.classT)) {
             this.rawDataType = MAP;
-            initForMap((List<Map<String, Object>>) data);
+            initForMap((List<Map<String, Object>>) data, order);
         } else {
             this.rawDataType = BEAN;
-            initForJavaBean(data);
+            initForJavaBean(data, order);
         }
     }
 
-    private void initForMap(List<Map<String, Object>> maps) {
+    private void initForMap(List<Map<String, Object>> maps, boolean order) {
         int capacity = maps.get(0).size() * maps.size();
         this.dataEntrys = new ArrayList<RawDataEntry>((int) (capacity * 0.75F));
-        this.graphMap = new HashMap<RawDataEntry, LinkedIdSet>(capacity + 1);
+        this.pv2linkedMap = new HashMap<RawDataEntry, LinkedIdSet>(capacity + 1);
         for (Map<String,Object> m : maps) {
             // 唯一列（索引列）的值
             Object indexVal;
@@ -78,14 +87,14 @@ public class Fastable<T> {
                     continue;
                 Object val = pv.getValue();
                 RawDataEntry dataEntry = new RawDataEntry(prop, val);
-                putRepeatableData(indexEntry, indexEntryId, dataEntry);
+                putRepeatableData(indexEntry, indexEntryId, dataEntry, order);
                 // System.out.println(prop + " :: " + val);
             }
             // System.out.println("----------------------------------");
         }
     }
 
-    private void initForJavaBean(List<T> beans) {
+    private void initForJavaBean(List<T> beans, boolean order) {
         Map<String, Method> propRMethods; // 属性名: 方法类
         try {
             propRMethods = Utils.getPropReadMethods(Utils.getBeanPropDesc(this.classT));
@@ -94,7 +103,7 @@ public class Fastable<T> {
         }
         int capacity = propRMethods.size() * beans.size();
         this.dataEntrys = new ArrayList<RawDataEntry>((int) (capacity * 0.75F));
-        this.graphMap = new HashMap<RawDataEntry, LinkedIdSet>(capacity + 1);
+        this.pv2linkedMap = new HashMap<RawDataEntry, LinkedIdSet>(capacity + 1);
         for (Object bean : beans) {
             // 唯一列（索引列）的值
             Object indexVal;
@@ -132,7 +141,7 @@ public class Fastable<T> {
                     e.printStackTrace();
                 }
                 RawDataEntry dataEntry = new RawDataEntry(prop, val);
-                putRepeatableData(indexEntry, indexEntryId, dataEntry);
+                putRepeatableData(indexEntry, indexEntryId, dataEntry, order);
                 // System.out.println(prop + " :: " + val);
             }
             // System.out.println("----------------------------------");
@@ -143,8 +152,8 @@ public class Fastable<T> {
         return this.rawDataType;
     }
 
-    public Map<RawDataEntry, LinkedIdSet> getGraphMap() {
-        return this.graphMap;
+    public Map<RawDataEntry, LinkedIdSet> getPv2linkedMap() {
+        return this.pv2linkedMap;
     }
 
     public List<RawDataEntry> getDataEntrys() {
@@ -155,27 +164,27 @@ public class Fastable<T> {
         return uniqueProperty;
     }
 
-    private void putRepeatableData(RawDataEntry indexEntry, int indexEntryId, RawDataEntry dataEntry) {
+    private void putRepeatableData(RawDataEntry indexEntry, int indexEntryId, RawDataEntry dataEntry, boolean order) {
         LinkedIdSet dataLinkedIds = null;
-        if (this.graphMap.containsKey(dataEntry)) {
-            dataLinkedIds = this.graphMap.get(dataEntry);
+        if (this.pv2linkedMap.containsKey(dataEntry)) {
+            dataLinkedIds = this.pv2linkedMap.get(dataEntry);
             dataLinkedIds.addLinkedIds(indexEntryId);
         } else {
             this.dataEntrys.add(dataEntry);
-            Set<Integer> linkedIds = new HashSet<Integer>();
+            Set<Integer> linkedIds = order? new TreeSet<Integer>() : new HashSet<Integer>();
             linkedIds.add(indexEntryId);
             dataLinkedIds = new LinkedIdSet(getDataEntrySize() - 1, linkedIds);
-            this.graphMap.put(dataEntry, dataLinkedIds);
+            this.pv2linkedMap.put(dataEntry, dataLinkedIds);
         }
-        this.graphMap.get(indexEntry).addLinkedIds(dataLinkedIds.getId());
+        this.pv2linkedMap.get(indexEntry).addLinkedIds(dataLinkedIds.getId());
     }
 
     private void putUniqueData(RawDataEntry dEntry) throws RepeatKeyException {
-        if (this.graphMap.containsKey(dEntry)) {
+        if (this.pv2linkedMap.containsKey(dEntry)) {
             throw new RepeatKeyException("{" + this.uniqueProperty + ": " + dEntry.getVal().toString() + "} 唯一列值出现重复");
         } else {
             this.dataEntrys.add(dEntry);
-            this.graphMap.put(dEntry, new LinkedIdSet(getDataEntrySize() - 1, new HashSet<Integer>()));
+            this.pv2linkedMap.put(dEntry, new LinkedIdSet(getDataEntrySize() - 1, new HashSet<Integer>()));
         }
     }
 
@@ -186,7 +195,7 @@ public class Fastable<T> {
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        for (Map.Entry<RawDataEntry, LinkedIdSet> gm : this.graphMap.entrySet()) {
+        for (Map.Entry<RawDataEntry, LinkedIdSet> gm : this.pv2linkedMap.entrySet()) {
             sb.append(gm.getKey().toString() + ": " + gm.getValue().toString() + "\n");
         }
         return sb.toString();

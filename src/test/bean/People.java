@@ -7,7 +7,6 @@ import java.util.Date;
  */
 public class People {
     private String name;
-    private int old;
     private String unit;
     private Date birth;
     private char gender;
@@ -18,9 +17,8 @@ public class People {
     public People() {
     }
 
-    public People(String name, int old, String unit, Date birth, char gender) {
+    public People(String name, String unit, Date birth, char gender) {
         setName(name);
-        setOld(old);
         setUnit(unit);
         setBirth(birth);
         setGender(gender);
@@ -32,14 +30,6 @@ public class People {
 
     public void setName(final String name) {
         this.name = name;
-    }
-
-    public int getOld() {
-        return old;
-    }
-
-    public void setOld(final int old) {
-        this.old = old;
     }
 
     public String getUnit() {
@@ -92,6 +82,6 @@ public class People {
 
     @Override
     public String toString() {
-        return "{name: " + getName() + ", old: " + getOld() + ", birth: " + getBirth() + ", gender: " + getGender() + "}";
+        return "{name: " + getName() + ", unit: " + getUnit() + ", birth: " + getBirth() + ", gender: " + getGender() + "}";
     }
 }

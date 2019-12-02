@@ -28,7 +28,7 @@ public class Finder<T> {
         }
         RawDataEntry qEntry = new RawDataEntry(property, value);
         Set<Integer> findIds = new HashSet<Integer>();
-        LinkedIdSet linkedIdSet = fstb.getGraphMap().get(qEntry);
+        LinkedIdSet linkedIdSet = fstb.getPv2linkedMap().get(qEntry);
         if (linkedIdSet == null) {
             return findIds;
         }
@@ -84,7 +84,7 @@ public class Finder<T> {
         }
         for (Integer indexId : this.tempFindIds) {
             RawDataEntry iEntry = fstb.getDataEntrys().get(indexId);
-            Set<Integer> dEntryIds = fstb.getGraphMap().get(iEntry).getAllIds();
+            Set<Integer> dEntryIds = fstb.getPv2linkedMap().get(iEntry).getAllIds();
             T resObj = null;
             try {
                 resObj = fstb.generateObj(dEntryIds);

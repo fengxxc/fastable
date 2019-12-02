@@ -2,8 +2,6 @@ package test;
 
 import java.io.File;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import main.Fastable;
@@ -15,14 +13,10 @@ import test.bean.People;
  */
 public class Test_06 {
 
-    // private static Date date(String dateStr) throws ParseException {
-    //     return new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
-    // }
-
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws ParseException {
         List<People> list = (List<People>) fileUtils.readCSVToBeans(
-                    new File("").getAbsolutePath() + File.separator + "bin//test//test-data.csv",
+                    new File("").getAbsolutePath() + File.separator + "src//test//test-data.csv",
                     People.class
                 );
         for (People people : list) {

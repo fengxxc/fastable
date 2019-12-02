@@ -22,7 +22,7 @@ public class Test_05 {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws ParseException {
         List<People> list = (List<People>) fileUtils.readCSVToBeans(
-                    new File("").getAbsolutePath() + File.separator + "bin//test//test-data.csv",
+                    new File("").getAbsolutePath() + File.separator + "src//test//test-data.csv",
                     People.class
                 );
         for (People people : list) {

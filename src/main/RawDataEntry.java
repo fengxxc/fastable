@@ -76,7 +76,8 @@ public class RawDataEntry {
         
         @Override
         public String toString() {
-            return "" + getKey().toString() + "_" + getVal().toString() + "";
+            String v = getVal() != null? getVal().toString() : null;
+            return "" + getKey().toString() + "_" + v + "";
         }
     }
 }

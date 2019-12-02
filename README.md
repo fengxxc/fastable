@@ -64,12 +64,12 @@ List<People> res = fastable.query("unit", "万事屋阿银")
                             .fetch();
 // res is [{"name": "坂田银时", "birth": "1980-03-08", "unit": "万事屋阿银", "gender": "M"}]
 ```
-相信聪明的你已经看出来了，本项目的接口方法采用“流畅接口”；对数据的查找遵循从左至右的形式逻辑运算（“与”、“或”、“非” => `.and`、`.or`、`.not`）
+相信聪明的你已经看出来了，本项目的接口风格采用**流畅接口**；对数据的查找遵循从左至右的**形式逻辑运算**（“与”、“或”、“非” => `.and`、`.or`、`.not`）
 
 `.fetch`用于返回结果，如果查询条件只有一个，可以简写成`.fetchQuery`：
 ```java
 // List<People> res = fastable.query("unit", "万事屋阿银").fetch();
-// 或者写成
+// 可简写成
 List<People> res = fastable.fetchQuery("unit", "万事屋阿银");
 /* res is [
         {"name": "坂田银时", "birth": "1980-03-08", "unit": "万事屋阿银", "gender": "M"},
@@ -79,7 +79,7 @@ List<People> res = fastable.fetchQuery("unit", "万事屋阿银");
 */
 ```
 ## 3 注意 
- - 数据源里被查询的属性值若包含（或递归地包含）**引用类型**，必须重写（或递归地重写）相应的`hashCode`和`equals`方法
- - 查询功能参数是强类型的，比如`query("gender", "M")`与`query("gender", 'M')`，前者查询的是String类型，后者查询的是char类型，不同的类型会有不同的返回结果
+ - 数据源里被查询的属性值若包含（或递归地包含）**引用类型**，则必须重写（或递归地重写）相应的`hashCode`和`equals`方法
+ - 查询功能参数是**强类型**的，比如`query("gender", "M")`与`query("gender", 'M')`，前者查询的是String类型，后者查询的是char类型，不同的类型会有不同的返回结果
  - 该项目目前处于起步阶段，没有经过大量的测试，需完善的地方还有很多，不建议用于生产环境
  ( •̀ ω •́ )✧
