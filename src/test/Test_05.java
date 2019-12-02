@@ -44,8 +44,8 @@ public class Test_05 {
         for (People p1 : query1)
             System.out.println(p1.toString());
 
-        System.out.println("-------unit: '快援队' and birth: 1997-06-01-------");
-        List<People> query2 = tp.query("unit", "快援队").and("birth", date("1997-06-01")).fetch();
+        System.out.println("-------unit: '快援队' and birth: 1987-07-07-------");
+        List<People> query2 = tp.query("unit", "快援队").and("birth", date("1987-07-07")).fetch();
         for (People p2 : query2)
             System.out.println(p2.toString());
 
@@ -55,7 +55,7 @@ public class Test_05 {
             System.out.println(p3.toString());
 
         System.out.println("-------unit: '登势酒吧' or unit: '万事屋阿银' not gender: 'M'-------");
-        List<People> query4 = tp.query("unit", "登势酒吧").or("unit", "万事屋阿银").not("gender", "M").fetch();
+        List<People> query4 = tp.query("unit", "登势酒吧").or("unit", "万事屋阿银").not("gender", 'M').fetch();
         for (People p4 : query4)
             System.out.println(p4.toString());
 

@@ -11,6 +11,9 @@ public class People {
     private String unit;
     private Date birth;
     private char gender;
+    private String species;
+    private int stature;
+    private int weight;
 
     public People() {
     }
@@ -61,6 +64,30 @@ public class People {
 
     public void setGender(char gender) {
         this.gender = gender;
+    }
+
+    public String getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(String species) {
+        this.species = species;
+    }
+
+    public int getStature() {
+        return stature;
+    }
+
+    public void setStature(int stature) {
+        this.stature = stature;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 
     @Override

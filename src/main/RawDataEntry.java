@@ -40,7 +40,8 @@ public class RawDataEntry {
     public int hashCode() {
         int hash = 17;
         hash = hash * 31 + getKey().hashCode();
-        hash = hash * 31 + getVal().hashCode();
+        if (getVal() != null)
+            hash = hash * 31 + getVal().hashCode();
         return hash;
     }
 
@@ -53,6 +54,9 @@ public class RawDataEntry {
             return false;
         }
         RawDataEntry e = (RawDataEntry) obj;
+        if (e.getVal() == null) {
+            return e.getKey().equals(getKey());
+        }
         return e.getKey().equals(getKey()) && e.getVal().equals(getVal());
     }
 

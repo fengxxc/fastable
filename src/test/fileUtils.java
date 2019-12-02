@@ -36,12 +36,19 @@ public class fileUtils {
                 Object bean = clazz.newInstance();
                 for (int i = 0; i < columns.length; i++) {
                     PropertyDescriptor propDesc = new PropertyDescriptor(Utils.fristChartoUpper(columns[i]), clazz);
-                    Object ite = item[i];
+                    Object ite = null;
+                    ite = item[i];
+                    if (Utils.nullOrEmptyStr((String) ite)) {
+                        continue;
+                    }
                     if (propDesc.getPropertyType().isAssignableFrom(Date.class)) {
                         ite = date((String) ite);
                     }
                     if (propDesc.getPropertyType().toString().equals("char")) {
                         ite = ite.toString().toCharArray()[0];
+                    }
+                    if (propDesc.getPropertyType().toString().equals("int")) {
+                        ite = Integer.valueOf((String) ite);
                     }
                     System.out.print(propDesc.getPropertyType() + " :: ");
                     System.out.print(columns[i] + " :: ");
