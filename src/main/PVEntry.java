@@ -1,20 +1,20 @@
 package main;
 
-public class RawDataEntry {
+public class PVEntry {
     private static final String INDEX = "_index_";
     private Entry<String, Object> entry;
     private boolean index;
 
-    public RawDataEntry(Object indexVal) {
+    public PVEntry(Object indexVal) {
         this.entry = new Entry<String, Object>(INDEX, indexVal);
         this.index = true;
     }
 
-    public RawDataEntry(String key, Object val) {
+    public PVEntry(String key, Object val) {
         this(key, val, false);
     }
 
-    public RawDataEntry(String key, Object val, boolean index) {
+    public PVEntry(String key, Object val, boolean index) {
         this.entry = new Entry<String, Object>(key, val);
         this.index = false;
     }
@@ -53,7 +53,7 @@ public class RawDataEntry {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        RawDataEntry e = (RawDataEntry) obj;
+        PVEntry e = (PVEntry) obj;
         if (e.getVal() == null) {
             return e.getKey().equals(getKey());
         }
