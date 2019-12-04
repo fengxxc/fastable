@@ -21,7 +21,7 @@ public class Fastable<T> {
 
     private Class<T> classT;
     List<PVEntry> pvEntrys;
-    private Map<PVEntry, LinkedIdSet> pv2linkedMap;
+    private PV2LinkedMap pv2linkedMap;
     private String uniqueProperty;
     private long tempRowIndex = 0;
     private String rawDataType;
@@ -59,7 +59,7 @@ public class Fastable<T> {
     private void initForMap(List<Map<String, Object>> maps, boolean order) {
         int capacity = maps.get(0).size() * maps.size();
         this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
-        this.pv2linkedMap = new HashMap<PVEntry, LinkedIdSet>(capacity + 1);
+        this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
         for (Map<String,Object> m : maps) {
             // 唯一列（索引列）的值
             Object indexVal;
@@ -103,7 +103,7 @@ public class Fastable<T> {
         }
         int capacity = propRMethods.size() * beans.size();
         this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
-        this.pv2linkedMap = new HashMap<PVEntry, LinkedIdSet>(capacity + 1);
+        this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
         for (Object bean : beans) {
             // 唯一列（索引列）的值
             Object indexVal;
@@ -152,7 +152,7 @@ public class Fastable<T> {
         return this.rawDataType;
     }
 
-    public Map<PVEntry, LinkedIdSet> getPv2linkedMap() {
+    public PV2LinkedMap getPv2linkedMap() {
         return this.pv2linkedMap;
     }
 

@@ -26,9 +26,8 @@ public class Finder<T> {
         if (Fastable.BEAN.equals(fstb.getRawDataType())) {
             property = Utils.fristChartoLower(property);
         }
-        PVEntry qEntry = new PVEntry(property, value);
         Set<Integer> findIds = new HashSet<Integer>();
-        LinkedIdSet linkedIdSet = fstb.getPv2linkedMap().get(qEntry);
+        LinkedIdSet linkedIdSet = fstb.getPv2linkedMap().get(property, value);
         if (linkedIdSet == null) {
             return findIds;
         }
