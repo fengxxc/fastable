@@ -5,12 +5,10 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import exception.RepeatKeyException;
 
@@ -31,32 +29,24 @@ public class Fastable<T> {
     public final static String BEAN = "BEAN";
 
     public Fastable(List<T> data) {
-        this(data, null, false);
-    }
-
-    public Fastable(List<T> data, String uniqueProperty) {
-        this(data, uniqueProperty, false);
-    }
-
-    public Fastable(List<T> data, boolean order) {
-        this(data, null, order);
+        this(data, null);
     }
     
     @SuppressWarnings("unchecked")
-    public Fastable(List<T> data, String uniqueProperty, boolean order) {
+    public Fastable(List<T> data, String uniqueProperty) {
         if (Utils.nullOrZeroSize(data)) return;
         this.classT = (Class<T>) data.get(0).getClass();
         this.uniqueProperty = Utils.nullOrEmptyStr(uniqueProperty)? DFT_ROWID : uniqueProperty;
         if (Map.class.isAssignableFrom(this.classT)) {
             this.rawDataType = MAP;
-            initForMap((List<Map<String, Object>>) data, order);
+            initForMap((List<Map<String, Object>>) data);
         } else {
             this.rawDataType = BEAN;
-            initForJavaBean(data, order);
+            initForJavaBean(data);
         }
     }
 
-    private void initForMap(List<Map<String, Object>> maps, boolean order) {
+    private void initForMap(List<Map<String, Object>> maps) {
         int capacity = maps.get(0).size() * maps.size();
         this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
         this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
@@ -87,14 +77,14 @@ public class Fastable<T> {
                     continue;
                 Object val = pv.getValue();
                 PVEntry pvEntry = new PVEntry(prop, val);
-                putRepeatableData(indexEntry, indexEntryId, pvEntry, order);
+                putRepeatableData(indexEntry, indexEntryId, pvEntry);
                 // System.out.println(prop + " :: " + val);
             }
             // System.out.println("----------------------------------");
         }
     }
 
-    private void initForJavaBean(List<T> beans, boolean order) {
+    private void initForJavaBean(List<T> beans) {
         Map<String, Method> propRMethods; // 属性名: 方法类
         try {
             propRMethods = Utils.getPropReadMethods(Utils.getBeanPropDesc(this.classT));
@@ -141,7 +131,7 @@ public class Fastable<T> {
                     e.printStackTrace();
                 }
                 PVEntry pvEntry = new PVEntry(prop, val);
-                putRepeatableData(indexEntry, indexEntryId, pvEntry, order);
+                putRepeatableData(indexEntry, indexEntryId, pvEntry);
                 // System.out.println(prop + " :: " + val);
             }
             // System.out.println("----------------------------------");
@@ -164,15 +154,15 @@ public class Fastable<T> {
         return uniqueProperty;
     }
 
-    private void putRepeatableData(PVEntry indexEntry, int indexEntryId, PVEntry pvEntry, boolean order) {
+    private void putRepeatableData(PVEntry indexEntry, int indexEntryId, PVEntry pvEntry) {
         LinkedIdSet dataLinkedIds = null;
         if (this.pv2linkedMap.containsKey(pvEntry)) {
             dataLinkedIds = this.pv2linkedMap.get(pvEntry);
             dataLinkedIds.addLinkedIds(indexEntryId);
         } else {
             this.pvEntrys.add(pvEntry);
-            Set<Integer> linkedIds = order? new TreeSet<Integer>() : new HashSet<Integer>();
-            linkedIds.add(indexEntryId);
+            BitSet linkedIds = new BitSet();
+            linkedIds.set(indexEntryId);
             dataLinkedIds = new LinkedIdSet(getPVEntrySize() - 1, linkedIds);
             this.pv2linkedMap.put(pvEntry, dataLinkedIds);
         }
@@ -184,7 +174,7 @@ public class Fastable<T> {
             throw new RepeatKeyException("{" + this.uniqueProperty + ": " + pvEntry.getVal().toString() + "} 唯一列值出现重复");
         } else {
             this.pvEntrys.add(pvEntry);
-            this.pv2linkedMap.put(pvEntry, new LinkedIdSet(getPVEntrySize() - 1, new HashSet<Integer>()));
+            this.pv2linkedMap.put(pvEntry, new LinkedIdSet(getPVEntrySize() - 1, new BitSet()));
         }
     }
 
@@ -206,9 +196,9 @@ public class Fastable<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public T generateObj(Set<Integer> entryIds) throws InstantiationException, IllegalAccessException {
+    public T generateObj(int[] entryIds) throws InstantiationException, IllegalAccessException {
         if (MAP.equals(this.rawDataType)) {
-            Map<String, Object> resObj = new HashMap<String, Object>((int) (entryIds.size()/0.75F + 1.0F));
+            Map<String, Object> resObj = new HashMap<String, Object>((int) (entryIds.length/0.75F + 1.0F));
             for (Integer eid : entryIds) {
                 PVEntry pvEntry = this.pvEntrys.get(eid);
                 String prop = pvEntry.getKey();
