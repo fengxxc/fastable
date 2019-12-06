@@ -23,7 +23,7 @@ public class Finder<T> {
 
     private BitSet findLinkedIds(String property, Object value) {
         if (Fastable.BEAN.equals(fstb.getRawDataType())) {
-            property = Utils.fristChartoLower(property);
+            property = Utils.FristChartoLower(property);
         }
         BitSet findIds = new BitSet();
         LinkedIdSet linkedIdSet = fstb.getPv2linkedMap().get(property, value);
@@ -76,6 +76,47 @@ public class Finder<T> {
         return this;
     }
 
+    public Finder<T> andRange(String sortableProperty, int start , int end , boolean includeStart, boolean includeEnd) {
+        BitSet findIds = findLinkedIdsRange(sortableProperty, start, end, includeStart, includeEnd);
+        if (findIds.isEmpty()) {
+            this.tempFindIds = null;
+            return this;
+        }
+        if (this.tempFindIds != null)
+            this.tempFindIds.and(findIds);
+        else
+            this.tempFindIds = findIds;
+        return this;
+    }
+
+    public Finder<T> orRange(String sortableProperty, int start , int end , boolean includeStart, boolean includeEnd) {
+        BitSet findIds = findLinkedIdsRange(sortableProperty, start, end, includeStart, includeEnd);
+        if (findIds.isEmpty()) {
+            return this;
+        }
+        if (this.tempFindIds != null)
+            this.tempFindIds.or(findIds);
+        else
+            this.tempFindIds = findIds;
+        return this;
+    }
+
+    private BitSet findLinkedIdsRange(String sortableProperty, int start, int end, boolean includeStart, boolean includeEnd) {
+        BitSet rangeVal = fstb.getProp2IntValMap().range(sortableProperty, start, end, includeStart, includeEnd);
+        BitSet findIds = new BitSet();
+        int v = rangeVal.nextSetBit(0);
+        if (v != -1) {
+            findIds.or(findLinkedIds(sortableProperty, v));
+            for (v = rangeVal.nextSetBit(v + 1); v >= 0; v = rangeVal.nextSetBit(v + 1)) {
+                int endOfRun = rangeVal.nextClearBit(v);
+                do {
+                    findIds.or(findLinkedIds(sortableProperty, v));
+                } while (++v < endOfRun);
+            }
+        }
+        return findIds;
+    }
+
     public List<T> fetch() {
         List<T> res = new ArrayList<>();
         if (this.tempFindIds == null) {
@@ -104,7 +145,7 @@ public class Finder<T> {
         PVEntry iEntry = fstb.getPVEntrys().get(indexId);
         BitSet pvEntryIds = fstb.getPv2linkedMap().get(iEntry).getAllIds();
         T resObj = null;
-        resObj = fstb.generateObj(Utils.bitSetToBecimalArray(pvEntryIds));
+        resObj = fstb.generateObj(Utils.BitSetToBecimalArray(pvEntryIds));
         res.add(resObj);
     }
     

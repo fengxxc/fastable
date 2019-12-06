@@ -20,6 +20,7 @@ public class Fastable<T> {
     private Class<T> classT;
     List<PVEntry> pvEntrys;
     private PV2LinkedMap pv2linkedMap;
+    private Prop2IntValMap prop2IntValMap;
     private String uniqueProperty;
     private long tempRowIndex = 0;
     private String rawDataType;
@@ -34,9 +35,9 @@ public class Fastable<T> {
     
     @SuppressWarnings("unchecked")
     public Fastable(List<T> data, String uniqueProperty) {
-        if (Utils.nullOrZeroSize(data)) return;
+        if (Utils.NullOrZeroSize(data)) return;
         this.classT = (Class<T>) data.get(0).getClass();
-        this.uniqueProperty = Utils.nullOrEmptyStr(uniqueProperty)? DFT_ROWID : uniqueProperty;
+        this.uniqueProperty = Utils.NullOrEmptyStr(uniqueProperty)? DFT_ROWID : uniqueProperty;
         if (Map.class.isAssignableFrom(this.classT)) {
             this.rawDataType = MAP;
             initForMap((List<Map<String, Object>>) data);
@@ -50,7 +51,7 @@ public class Fastable<T> {
         int capacity = maps.get(0).size() * maps.size();
         this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
         this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
-        for (Map<String,Object> m : maps) {
+        for (Map<String, Object> m : maps) {
             // 唯一列（索引列）的值
             Object indexVal;
             if (!DFT_ROWID.equals(this.uniqueProperty)) {
@@ -71,7 +72,7 @@ public class Fastable<T> {
             int indexEntryId = getPVEntrySize() - 1;
 
             // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
-            for (Map.Entry<String,Object> pv : m.entrySet()) {
+            for (Map.Entry<String, Object> pv : m.entrySet()) {
                 String prop = pv.getKey(); // 属性
                 if (prop.equals(this.uniqueProperty))
                     continue;
@@ -87,7 +88,7 @@ public class Fastable<T> {
     private void initForJavaBean(List<T> beans) {
         Map<String, Method> propRMethods; // 属性名: 方法类
         try {
-            propRMethods = Utils.getPropReadMethods(Utils.getBeanPropDesc(this.classT));
+            propRMethods = Utils.GetPropReadMethods(Utils.GetBeanPropDesc(this.classT));
         } catch (IntrospectionException e1) {
             e1.printStackTrace(); return;
         }
@@ -99,7 +100,7 @@ public class Fastable<T> {
             Object indexVal;
             try {
                 if (!DFT_ROWID.equals(this.uniqueProperty)) {
-                    indexVal = propRMethods.get(Utils.fristChartoLower(this.uniqueProperty)).invoke(bean);
+                    indexVal = propRMethods.get(Utils.FristChartoLower(this.uniqueProperty)).invoke(bean);
                     if (indexVal == null) 
                         System.err.println("{" + this.uniqueProperty + "}唯一列值出现空值");
                 } else {
@@ -110,7 +111,7 @@ public class Fastable<T> {
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
                 e2.printStackTrace(); return;
             }
-            PVEntry indexEntry = new PVEntry(Utils.fristChartoLower(this.uniqueProperty), indexVal, true);
+            PVEntry indexEntry = new PVEntry(Utils.FristChartoLower(this.uniqueProperty), indexVal, true);
             try {
                 putUniqueData(indexEntry);
             } catch (RepeatKeyException e1) {
@@ -121,7 +122,7 @@ public class Fastable<T> {
             // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
             for (Map.Entry<String, Method> pm : propRMethods.entrySet()) {
                 String prop = pm.getKey(); // 属性
-                if (prop.equals(Utils.fristChartoLower(this.uniqueProperty)))
+                if (prop.equals(Utils.FristChartoLower(this.uniqueProperty)))
                     continue;
                 Object val = null; // 属性值
                 Method method = pm.getValue();
@@ -146,6 +147,10 @@ public class Fastable<T> {
         return this.pv2linkedMap;
     }
 
+    public Prop2IntValMap getProp2IntValMap() {
+        return this.prop2IntValMap;
+    }
+
     public List<PVEntry> getPVEntrys() {
         return pvEntrys;
     }
@@ -165,6 +170,7 @@ public class Fastable<T> {
             linkedIds.set(indexEntryId);
             dataLinkedIds = new LinkedIdSet(getPVEntrySize() - 1, linkedIds);
             this.pv2linkedMap.put(pvEntry, dataLinkedIds);
+            putSortableIndex(pvEntry);
         }
         this.pv2linkedMap.get(indexEntry).addLinkedIds(dataLinkedIds.getId());
     }
@@ -175,6 +181,16 @@ public class Fastable<T> {
         } else {
             this.pvEntrys.add(pvEntry);
             this.pv2linkedMap.put(pvEntry, new LinkedIdSet(getPVEntrySize() - 1, new BitSet()));
+            putSortableIndex(pvEntry);
+        }
+    }
+
+    private void putSortableIndex(PVEntry pvEntry) {
+        if (this.prop2IntValMap == null) {
+            this.prop2IntValMap = new Prop2IntValMap();
+        }
+        if (pvEntry.getVal() instanceof Integer) {
+            this.prop2IntValMap.add(pvEntry.getKey(), (int) pvEntry.getVal());
         }
     }
 
@@ -193,6 +209,11 @@ public class Fastable<T> {
 
     public Finder<T> query(String property, Object value) {
         return new Finder<T>(this, property, value);
+    }
+
+    public Finder<T> queryRange(String sortableProperty, int start, int end, boolean includeStart, boolean includeEnd) {
+        Finder<T> finder = new Finder<>(this);
+        return finder.andRange(sortableProperty, start, end, includeStart, includeEnd);
     }
 
     @SuppressWarnings("unchecked")

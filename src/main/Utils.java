@@ -16,25 +16,25 @@ import java.util.Map;
  */
 public class Utils {
 
-    public static PropertyDescriptor[] getBeanPropDesc(Class<?> clazz) throws IntrospectionException {
+    public static PropertyDescriptor[] GetBeanPropDesc(Class<?> clazz) throws IntrospectionException {
         BeanInfo beanInfo = null;
         beanInfo = Introspector.getBeanInfo(clazz);
         PropertyDescriptor[] propDesc = beanInfo.getPropertyDescriptors();
         return propDesc;
     }
 
-    public static Map<String, Method> getPropReadMethods(PropertyDescriptor[] propDesc) {
+    public static Map<String, Method> GetPropReadMethods(PropertyDescriptor[] propDesc) {
         Map<String, Method> prm = new HashMap<String, Method>();
         for (PropertyDescriptor pd : propDesc) {
             Method rm = pd.getReadMethod();
             if (rm.getName().equals("getClass"))
                 continue;
-            prm.put(Utils.fristChartoLower(rm.getName().substring(3)), rm);
+            prm.put(Utils.FristChartoLower(rm.getName().substring(3)), rm);
         }
         return prm;
     }
 
-    public static String fristChartoLower(String string) {
+    public static String FristChartoLower(String string) {
         if (65 <= string.charAt(0) && string.charAt(0) <= 90) {
             char[] charArr = string.toCharArray();
             charArr[0] += 32;
@@ -43,7 +43,7 @@ public class Utils {
         return string;
     }
 
-    public static String fristChartoUpper(String string) {
+    public static String FristChartoUpper(String string) {
         if (97 <= string.charAt(0) && string.charAt(0) <= 122) {
             char[] charArr = string.toCharArray();
             charArr[0] -= 32;
@@ -52,11 +52,11 @@ public class Utils {
         return string;
     }
 
-    public static boolean nullOrEmptyStr(String string) {
+    public static boolean NullOrEmptyStr(String string) {
         return string == null || "".equals(string);
     }
 
-    public static boolean nullOrZeroSize(List<?> list) {
+    public static boolean NullOrZeroSize(List<?> list) {
         return list == null || list.size() == 0;
     }
 
@@ -75,7 +75,7 @@ public class Utils {
         }
     }
 
-    public static int[] bitSetToBecimalArray(BitSet bs) {
+    public static int[] BitSetToBecimalArray(BitSet bs) {
         int[] res = new int[bs.cardinality()];
         int ri = 0;
         int i = bs.nextSetBit(0);
@@ -89,6 +89,26 @@ public class Utils {
             }
         }
         return res;
+    }
+
+    public static BitSet BitSet_range(BitSet obs, int start, int end, boolean includeStart, boolean includeEnd) {
+        BitSet nbs = new BitSet();
+        int i = obs.nextSetBit(start);
+        if (i != -1) {
+            if (!(i == start && !includeStart))
+                nbs.set(i);
+            for (i = obs.nextSetBit(i + 1); i >= 0 && i < end;) {
+                int endOfRun = obs.nextClearBit(i);
+                do {
+                    nbs.set(i);
+                } while (++i < endOfRun && i < end);
+                if (i < end)
+                    i = obs.nextSetBit(i + 1);
+            }
+            if (includeEnd && obs.previousSetBit(i) == end)
+                nbs.set(i);
+        }
+        return nbs;
     }
 
     public static void main(String[] args) {
@@ -111,7 +131,7 @@ public class Utils {
         bs3.set(31);
         bs3.set(52);
         bs3.set(28);
-        int[] bta = bitSetToBecimalArray(bs3);
+        int[] bta = BitSetToBecimalArray(bs3);
         System.out.println(Arrays.toString(bta));
     }
 

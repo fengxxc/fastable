@@ -1,5 +1,6 @@
 package test.bean;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -80,8 +81,21 @@ public class People {
         this.weight = weight;
     }
 
+    private static String date(Date date) {
+        if (date == null) {
+            return "";
+        }
+        return new SimpleDateFormat("yyyy-MM-dd").format(date);
+    }
+
     @Override
     public String toString() {
-        return "{name: " + getName() + ", unit: " + getUnit() + ", birth: " + getBirth() + ", gender: " + getGender() + "}";
+        return "{name: " + getName() 
+                    + ", unit: " + getUnit() 
+                    + ", birth: " + date(getBirth()) 
+                    + ", gender: " + getGender()
+                    + ", stature: " + getStature() 
+                    + ", weight: " + getWeight() 
+                + "}";
     }
 }

@@ -35,10 +35,10 @@ public class fileUtils {
                 String item[] = line.split(",");
                 Object bean = clazz.newInstance();
                 for (int i = 0; i < columns.length; i++) {
-                    PropertyDescriptor propDesc = new PropertyDescriptor(Utils.fristChartoUpper(columns[i]), clazz);
+                    PropertyDescriptor propDesc = new PropertyDescriptor(Utils.FristChartoUpper(columns[i]), clazz);
                     Object ite = null;
                     ite = item[i];
-                    if (Utils.nullOrEmptyStr((String) ite)) {
+                    if (Utils.NullOrEmptyStr((String) ite)) {
                         continue;
                     }
                     if (propDesc.getPropertyType().isAssignableFrom(Date.class)) {
