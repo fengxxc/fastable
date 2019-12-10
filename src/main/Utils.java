@@ -75,7 +75,7 @@ public class Utils {
         }
     }
 
-    public static int[] BitSetToBecimalArray(BitSet bs) {
+    public static int[] BitSetToIntegerArray(BitSet bs) {
         int[] res = new int[bs.cardinality()];
         int ri = 0;
         int i = bs.nextSetBit(0);
@@ -131,7 +131,7 @@ public class Utils {
         bs3.set(31);
         bs3.set(52);
         bs3.set(28);
-        int[] bta = BitSetToBecimalArray(bs3);
+        int[] bta = BitSetToIntegerArray(bs3);
         System.out.println(Arrays.toString(bta));
     }
 

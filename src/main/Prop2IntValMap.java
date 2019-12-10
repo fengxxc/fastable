@@ -1,11 +1,13 @@
 package main;
 
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
+
+import main.sortable.ISortableSet;
+import main.sortable.SortableIntegerSet;
 
 /**
  * Prop2IntValMap
@@ -16,65 +18,78 @@ public class Prop2IntValMap {
      * 数值型的
      * 属性名: [排好序的数值]
      */
-    private Map<String, BitSet> m;
+    private Map<String, ISortableSet<BitSet, Integer>> intM;
 
     public Prop2IntValMap() {
-        m = new HashMap<String, BitSet>();
+        intM = new HashMap<String, ISortableSet<BitSet, Integer>>();
     }
 
     public Prop2IntValMap(int initialCapacity) {
-        m = new HashMap<String, BitSet>(initialCapacity);
+        intM = new HashMap<String, ISortableSet<BitSet, Integer>>(initialCapacity);
     }
 
     public boolean containsKey(String property) {
-        return m.containsKey(property);
+        return intM.containsKey(property);
     }
 
-    public BitSet get(String property) {
-        return m.get(property);
+    public ISortableSet<BitSet, Integer> get(String property) {
+        return intM.get(property);
     }
 
-    public BitSet put(String property, BitSet integerSet) {
-        return m.put(property, integerSet);
-    }
+    /*
+     * public ISortableSet<BitSet, Integer> put(String propert return
+     * intM.put(property, integerSet); }
+     */
 
     public void add(String property, int integer) {
         if (!this.containsKey(property)) {
-            this.put(property, new BitSet());
+            intM.put(property, new SortableIntegerSet());
         }
-        m.get(property).set(integer);
+        intM.get(property).add(integer);
     }
 
-    public BitSet range(String property, int start, int end, boolean includeStart, boolean includeEnd) {
-        BitSet obs = get(property);
+    public ISortableSet<BitSet, Integer> range(String property, int start, int end, boolean includeStart, boolean includeEnd) {
+        ISortableSet<BitSet, Integer> obs = get(property);
         if (obs == null) {
-            return new BitSet();
+            return new SortableIntegerSet();
         }
-        BitSet nbs = Utils.BitSet_range(obs, start, end, includeStart, includeEnd);
+        ISortableSet<BitSet, Integer> nbs = new SortableIntegerSet(obs.count());
+        obs.forEach((e, i, c) -> {
+            nbs.add(e); return true;
+        }, start, end, includeStart, includeEnd);
         return nbs;
     }
 
-    public BitSet greater(String property, int start, boolean includeStart) {
-        BitSet obs = get(property);
-        BitSet nbs = Utils.BitSet_range(obs, start, obs.size()-1, includeStart, true);
+    public ISortableSet<BitSet, Integer> greater(String property, int start, boolean includeStart) {
+        ISortableSet<BitSet, Integer> obs = get(property);
+        if (obs == null) {
+            return new SortableIntegerSet();
+        }
+        ISortableSet<BitSet, Integer> nbs = new SortableIntegerSet(obs.count());
+        obs.forEach((e, i, c) -> {
+            nbs.add(e); return true;
+        }, start, obs.count(), includeStart, true);
         return nbs;
     }
 
-    public BitSet less(String property, int end, boolean includeEnd) {
-        BitSet obs = get(property);
-        BitSet nbs = Utils.BitSet_range(obs, 0, end, true, includeEnd);
+    public ISortableSet<BitSet, Integer> less(String property, int end, boolean includeEnd) {
+        ISortableSet<BitSet, Integer> obs = get(property);
+        ISortableSet<BitSet, Integer> nbs = new SortableIntegerSet(obs.count());
+        obs.forEach((e, i, c) -> {
+            nbs.add(e); return true;
+        }, 0, end, true, includeEnd);
         return nbs;
     }
 
-    public Set<Entry<String, BitSet>> entrySet() {
-        return m.entrySet();
+    public Set<Entry<String, ISortableSet<BitSet, Integer>>> entrySet() {
+        return intM.entrySet();
     }
 
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer("{\n");
-        for (Entry<String, BitSet> e : this.m.entrySet()) {
-            sb.append("    " + e.getKey() + ": " + Arrays.toString(Utils.BitSetToBecimalArray(e.getValue())) + ",\n");
+        for (Entry<String, ISortableSet<BitSet, Integer>> e : this.intM.entrySet()) {
+            sb.append("    " + e.getKey() + ": " + e.getValue().toString() + ",\n");
         }
         sb.append("}");
         return sb.toString();

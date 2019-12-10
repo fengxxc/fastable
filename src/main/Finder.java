@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import main.sortable.ISortableSet;
+
 /**
  * Finder
  */
@@ -102,18 +104,13 @@ public class Finder<T> {
     }
 
     private BitSet findLinkedIdsRange(String sortableProperty, int start, int end, boolean includeStart, boolean includeEnd) {
-        BitSet rangeVal = fstb.getProp2IntValMap().range(sortableProperty, start, end, includeStart, includeEnd);
+        ISortableSet<BitSet, Integer> rangeVal = fstb.getProp2IntValMap().range(sortableProperty, start, end, includeStart, includeEnd);
         BitSet findIds = new BitSet();
-        int v = rangeVal.nextSetBit(0);
-        if (v != -1) {
+
+        rangeVal.forEach((v, i, ctx) -> {
             findIds.or(findLinkedIds(sortableProperty, v));
-            for (v = rangeVal.nextSetBit(v + 1); v >= 0; v = rangeVal.nextSetBit(v + 1)) {
-                int endOfRun = rangeVal.nextClearBit(v);
-                do {
-                    findIds.or(findLinkedIds(sortableProperty, v));
-                } while (++v < endOfRun);
-            }
-        }
+            return true;
+        });
         return findIds;
     }
 
@@ -145,7 +142,7 @@ public class Finder<T> {
         PVEntry iEntry = fstb.getPVEntrys().get(indexId);
         BitSet pvEntryIds = fstb.getPv2linkedMap().get(iEntry).getAllIds();
         T resObj = null;
-        resObj = fstb.generateObj(Utils.BitSetToBecimalArray(pvEntryIds));
+        resObj = fstb.generateObj(Utils.BitSetToIntegerArray(pvEntryIds));
         res.add(resObj);
     }
     
