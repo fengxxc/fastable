@@ -2,13 +2,12 @@ package main.sortable;
 
 /**
  * ISortableSet
- * @param <T>
  * @param <V>
  */
-public interface ISortableSet<T, V> {
+public interface ISortableSet<V> {
     final static char BREAK = 'b';
 
-    void forEach(IteratorFun<T, V> iteratorFun);
+    void forEach(IteratorFun<V> iteratorFun);
 
     /**
      * 
@@ -18,10 +17,10 @@ public interface ISortableSet<T, V> {
      * @param includeStart
      * @param includeEnd
      */
-    void forEach(IteratorFun<T, V> iteratorFun, int start, int end, boolean includeStart, boolean includeEnd);
+    void forEach(IteratorFun<V> iteratorFun, Integer start, Integer end, boolean includeStart, boolean includeEnd);
 
     @FunctionalInterface
-    public interface IteratorFun<T, V> {
+    public interface IteratorFun<V> {
         /**
          * 
          * @param val
@@ -29,7 +28,7 @@ public interface ISortableSet<T, V> {
          * @param context
          * @return true=> continue; false => break
          */
-        boolean accept(V val, int index, T context);
+        boolean accept(V val, int index);
     }
 
     /**
@@ -43,25 +42,4 @@ public interface ISortableSet<T, V> {
      * @return
      */
     int count();
-    
-    /**
-     * 交集
-     * @param other
-     * @return new Instance of T
-     */
-    T toAnd(T other);
-
-    /**
-     * 并集
-     * @param other
-     * @return new Instance of T
-     */
-    T toOr(T other);
-
-    /**
-     * 差集
-     * @param other
-     * @return new Instance of T
-     */
-    T toNot(T other);
 }

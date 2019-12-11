@@ -6,87 +6,131 @@ import java.util.BitSet;
 /**
  * SortableIntegerSet
  */
-public class SortableIntegerSet extends BitSet implements ISortableSet<BitSet, Integer> {
+public class SortableIntegerSet implements ISortableSet<Integer> {
 
-    private static final long serialVersionUID = 1L;
+    private BitSet nIntSet; // negativeIntegerSet
+    private BitSet pIntSet; // positiveIntegerSet
 
     public SortableIntegerSet() {
-        super();
+        pIntSet = new BitSet();
+        nIntSet = new BitSet();
     }
 
-    public SortableIntegerSet(int cardinality) {
-        super(cardinality);
-	}
+    public SortableIntegerSet(BitSet nIntSet, BitSet pIntSet) {
+        setNIntSet(nIntSet);
+        setPIntSet(pIntSet);
+    }
 
-    @Override
-    public void forEach(IteratorFun<BitSet, Integer> iteratorFun) {
-        forEach(iteratorFun, -1, -1, true, true);
+    public BitSet getNIntSet() {
+        return nIntSet;
+    }
+
+    public void setNIntSet(BitSet nIntSet) {
+        this.nIntSet = nIntSet;
+    }
+
+    public BitSet getPIntSet() {
+        return pIntSet;
+    }
+
+    public void setPIntSet(BitSet pIntSet) {
+        this.pIntSet = pIntSet;
     }
 
     @Override
-    public void forEach(IteratorFun<BitSet, Integer> iteratorFun, int start, int end, boolean includeStart, boolean includeEnd) {
+    public void forEach(IteratorFun<Integer> iteratorFun) {
+        forEach(iteratorFun, null, null, true, true);
+    }
+
+    @Override
+    public void forEach(IteratorFun<Integer> iteratorFun, Integer start, Integer end, boolean includeStart, boolean includeEnd) {
+        if (start == null) {
+            if (nIntSet.cardinality() == 0) {
+                if (pIntSet.cardinality() == 0) {
+                    return;
+                }
+                start = 0;
+            } else {
+                start = 0 - nIntSet.length()-1;
+            }
+        }
+        end = end == null? Integer.MAX_VALUE : end;
         if (start > end) return;
-        start = start < 0? 0 : start;
-        end = end < 0? Integer.MAX_VALUE : end;
+
         int index = 0;
-        int item = this.nextSetBit(start);
-        if (item == -1) return;
-        if (!(item == start && !includeStart))
-            if (!iteratorFun.accept(item, index++, this))
+        // 迭代负数
+        if (nIntSet.cardinality() > 0 && start < 0) {
+            int n = nIntSet.previousSetBit(0-start);
+            if (n != -1) {
+                if (!((0-n) == start && !includeStart))
+                    if (!iteratorFun.accept((0-n), index++))
+                        return;
+                for (; (n = nIntSet.previousSetBit(n - 1)) >= 0 && (0-n) < end;) {
+                    // if ((0-n) < end) {
+                        if (!iteratorFun.accept((0 - n), index++))
+                            return;
+                    // }
+                }
+                if (n != -1) {
+                    if (includeEnd && (0-nIntSet.previousSetBit(n)) == end) {
+                        iteratorFun.accept((0 - n), index++);
+                        return;
+                    }
+                }
+            }
+        }
+        // 迭代正数
+        int pStart = start;
+        boolean pIndludeStart = includeStart;
+        if (start < 0) {
+            pStart = 0;
+            pIndludeStart = true;
+        }
+        int p = pIntSet.nextSetBit(pStart);
+        if (p == -1) return;
+        if (!(p == pStart && !pIndludeStart))
+            if (!iteratorFun.accept(p, index++))
                 return;
-        for (item = this.nextSetBit(item + 1); item >= 0 && item < end; item = this.nextSetBit(item + 1))
-            if (!iteratorFun.accept(item, index++, this))
+        for (p = pIntSet.nextSetBit(p + 1); p >= 0 && p < end; p = pIntSet.nextSetBit(p + 1))
+            if (!iteratorFun.accept(p, index++))
                 return;
-        if (item == -1) return;
-        if (includeEnd && this.nextSetBit(item) == end)
-            iteratorFun.accept(item, index++, this);
+        if (p == -1) return;
+        if (includeEnd && pIntSet.nextSetBit(p) == end)
+            iteratorFun.accept(p, index++);
         
     }
     
     @Override
     public void add(Integer i) {
-        super.set(i);
-    }
-    
-    @Override
-    public BitSet toAnd(BitSet other) {
-        BitSet r = (BitSet) this.clone();
-        r.and(other);
-        return r;
-    }
-
-    @Override
-    public BitSet toOr(BitSet other) {
-        BitSet r = (BitSet) this.clone();
-        r.or(other);
-        return r;
-    }
-
-    @Override
-    public BitSet toNot(BitSet other) {
-        BitSet r = (BitSet) this.clone();
-        BitSet t = (BitSet) r.clone();
-        t.and(other);
-        int i = t.nextSetBit(0);
-        if (i == -1)
-            return r;
-        r.set(i, false);
-        for (i = t.nextSetBit(i + 1); i >= 0; i = t.nextSetBit(i + 1)) {
-            int endOfRun = t.nextClearBit(i);
-            do {
-                r.set(i, false);
-            } while (++i < endOfRun);
+        if (i < 0) {
+            nIntSet.set(0-i);
+        } else {
+            pIntSet.set(i);
         }
-        return r;
     }
 
     @Override
     public int count() {
-        return this.cardinality();
+        return nIntSet.cardinality() + pIntSet.cardinality();
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer("{");
+        for (int i = nIntSet.length(); (i = nIntSet.previousSetBit(i-1)) >= 0; ) {
+            sb.append((0-i) + ", ");
+        }
+        String ps = pIntSet.toString();
+        if (!"{}".equals(ps)) {
+            sb.append(ps.substring(1));
+        } else {
+            sb.delete(sb.length() - 2, sb.length()).append("}");
+        }
+        return sb.toString();
     }
 
     public static void main(String[] args) {
-        ISortableSet<BitSet, Integer> sbs = new SortableIntegerSet();
+        ISortableSet<Integer> sbs = new SortableIntegerSet();
         sbs.add(3);
         sbs.add(8);
         sbs.add(3);
@@ -104,7 +148,7 @@ public class SortableIntegerSet extends BitSet implements ISortableSet<BitSet, I
         System.out.println(Arrays.toString(res)); */
 
         int[] res1 = new int[sbs.count()];
-        sbs.forEach((e, i, c) -> {
+        sbs.forEach((e, i) -> {
             res1[i++] = e;
             return true;
         }, 37, 37, true, true);

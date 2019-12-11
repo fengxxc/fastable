@@ -104,10 +104,11 @@ public class Finder<T> {
     }
 
     private BitSet findLinkedIdsRange(String sortableProperty, int start, int end, boolean includeStart, boolean includeEnd) {
-        ISortableSet<BitSet, Integer> rangeVal = fstb.getProp2IntValMap().range(sortableProperty, start, end, includeStart, includeEnd);
+        ISortableSet<Integer> rangeVal = fstb.getProp2IntValMap().range(sortableProperty, start, end, includeStart, includeEnd);
         BitSet findIds = new BitSet();
 
-        rangeVal.forEach((v, i, ctx) -> {
+        rangeVal.forEach((v, i) -> {
+            System.out.println("~~~~~" + v);
             findIds.or(findLinkedIds(sortableProperty, v));
             return true;
         });
