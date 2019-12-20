@@ -20,7 +20,7 @@ public class Fastable<T> {
     private Class<T> classT;
     List<PVEntry> pvEntrys;
     private PV2LinkedMap pv2linkedMap;
-    private Prop2IntValMap prop2IntValMap;
+    private Prop2IntValIndexer prop2IntValIndexer;
     private String uniqueProperty;
     private long tempRowIndex = 0;
     private String rawDataType;
@@ -39,50 +39,66 @@ public class Fastable<T> {
         this.classT = (Class<T>) data.get(0).getClass();
         this.uniqueProperty = Utils.NullOrEmptyStr(uniqueProperty)? DFT_ROWID : uniqueProperty;
         if (Map.class.isAssignableFrom(this.classT)) {
+            // initForMap
             this.rawDataType = MAP;
-            initForMap((List<Map<String, Object>>) data);
+            List<Map<String, Object>> _data = (List<Map<String, Object>>) data;
+            int capacity = _data.get(0).size() * _data.size();
+            this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
+            this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
+            for (Map<String, Object> m : _data) {
+                addData(m);
+            }
         } else {
+            // initForJavaBean
             this.rawDataType = BEAN;
-            initForJavaBean(data);
+            List<T> _data = data;
+            Map<String, Method> propRMethods; // 属性名: 方法类
+            try {
+                propRMethods = Utils.GetPropReadMethods(Utils.GetBeanPropDesc(this.classT));
+            } catch (IntrospectionException e) {
+                e.printStackTrace();
+                return;
+            }
+            int capacity = propRMethods.size() * _data.size();
+            this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
+            this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
+            for (Object bean : _data) {
+                addData(propRMethods, bean);
+            }
         }
     }
 
-    private void initForMap(List<Map<String, Object>> maps) {
-        int capacity = maps.get(0).size() * maps.size();
-        this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
-        this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
-        for (Map<String, Object> m : maps) {
-            // 唯一列（索引列）的值
-            Object indexVal;
-            if (!DFT_ROWID.equals(this.uniqueProperty)) {
-                indexVal = m.get(this.uniqueProperty);
-                if (indexVal == null)
-                    System.err.println("{" + this.uniqueProperty + "}唯一列值出现空值");
-            } else {
-                indexVal = this.tempRowIndex;
-                this.tempRowIndex++;
-            }
-            PVEntry indexEntry = new PVEntry(this.uniqueProperty, indexVal, true);
-            try {
-                putUniqueData(indexEntry);
-            } catch (RepeatKeyException e1) {
-                e1.printStackTrace();
-                return;
-            }
-            int indexEntryId = getPVEntrySize() - 1;
-
-            // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
-            for (Map.Entry<String, Object> pv : m.entrySet()) {
-                String prop = pv.getKey(); // 属性
-                if (prop.equals(this.uniqueProperty))
-                    continue;
-                Object val = pv.getValue();
-                PVEntry pvEntry = new PVEntry(prop, val);
-                putRepeatableData(indexEntry, indexEntryId, pvEntry);
-                // System.out.println(prop + " :: " + val);
-            }
-            // System.out.println("----------------------------------");
+    public void addData(Map<String, Object> m) {
+        // 唯一列（索引列）的值
+        Object indexVal;
+        if (!DFT_ROWID.equals(this.uniqueProperty)) {
+            indexVal = m.get(this.uniqueProperty);
+            if (indexVal == null)
+                System.err.println("{" + this.uniqueProperty + "}唯一列值出现空值");
+        } else {
+            indexVal = this.tempRowIndex;
+            this.tempRowIndex++;
         }
+        PVEntry indexEntry = new PVEntry(this.uniqueProperty, indexVal, true);
+        try {
+            putUniqueData(indexEntry);
+        } catch (RepeatKeyException e1) {
+            e1.printStackTrace();
+            // return;
+        }
+        int indexEntryId = getPVEntrySize() - 1;
+
+        // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
+        for (Map.Entry<String, Object> pv : m.entrySet()) {
+            String prop = pv.getKey(); // 属性
+            if (prop.equals(this.uniqueProperty))
+                continue;
+            Object val = pv.getValue();
+            PVEntry pvEntry = new PVEntry(prop, val);
+            putRepeatableData(indexEntry, indexEntryId, pvEntry);
+            // System.out.println(prop + " :: " + val);
+        }
+        // System.out.println("----------------------------------");
     }
 
     private void initForJavaBean(List<T> beans) {
@@ -96,47 +112,53 @@ public class Fastable<T> {
         this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
         this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
         for (Object bean : beans) {
-            // 唯一列（索引列）的值
-            Object indexVal;
-            try {
-                if (!DFT_ROWID.equals(this.uniqueProperty)) {
-                    indexVal = propRMethods.get(Utils.FristChartoLower(this.uniqueProperty)).invoke(bean);
-                    if (indexVal == null) 
-                        System.err.println("{" + this.uniqueProperty + "}唯一列值出现空值");
-                } else {
-                    indexVal = this.tempRowIndex;
-                    this.tempRowIndex++;
-                }
-                
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
-                e2.printStackTrace(); return;
-            }
-            PVEntry indexEntry = new PVEntry(Utils.FristChartoLower(this.uniqueProperty), indexVal, true);
-            try {
-                putUniqueData(indexEntry);
-            } catch (RepeatKeyException e1) {
-                e1.printStackTrace(); return;
-            }
-            int indexEntryId = getPVEntrySize() - 1;
-
-            // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
-            for (Map.Entry<String, Method> pm : propRMethods.entrySet()) {
-                String prop = pm.getKey(); // 属性
-                if (prop.equals(Utils.FristChartoLower(this.uniqueProperty)))
-                    continue;
-                Object val = null; // 属性值
-                Method method = pm.getValue();
-                try {
-                    val = method.invoke(bean);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                PVEntry pvEntry = new PVEntry(prop, val);
-                putRepeatableData(indexEntry, indexEntryId, pvEntry);
-                // System.out.println(prop + " :: " + val);
-            }
-            // System.out.println("----------------------------------");
+            addData(propRMethods, bean);
         }
+    }
+
+    public void addData(Map<String, Method> propRMethods, Object bean) {
+        // 唯一列（索引列）的值
+        Object indexVal = null;
+        if (!DFT_ROWID.equals(this.uniqueProperty)) {
+            try {
+                indexVal = propRMethods.get(Utils.FristChartoLower(this.uniqueProperty)).invoke(bean);
+                if (indexVal == null) 
+                    System.err.println("{" + this.uniqueProperty + "}唯一列值出现空值");
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
+                e2.printStackTrace();
+                return;
+            }
+        } else {
+            indexVal = this.tempRowIndex;
+            this.tempRowIndex++;
+        }
+            
+        PVEntry indexEntry = new PVEntry(Utils.FristChartoLower(this.uniqueProperty), indexVal, true);
+        try {
+            putUniqueData(indexEntry);
+        } catch (RepeatKeyException e1) {
+            e1.printStackTrace();
+            return;
+        }
+        int indexEntryId = getPVEntrySize() - 1;
+
+        // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
+        for (Map.Entry<String, Method> pm : propRMethods.entrySet()) {
+            String prop = pm.getKey(); // 属性
+            if (prop.equals(Utils.FristChartoLower(this.uniqueProperty)))
+                continue;
+            Object val = null; // 属性值
+            Method method = pm.getValue();
+            try {
+                val = method.invoke(bean);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            PVEntry pvEntry = new PVEntry(prop, val);
+            putRepeatableData(indexEntry, indexEntryId, pvEntry);
+            // System.out.println(prop + " :: " + val);
+        }
+        // System.out.println("----------------------------------");
     }
 
     public String getRawDataType() {
@@ -147,8 +169,8 @@ public class Fastable<T> {
         return this.pv2linkedMap;
     }
 
-    public Prop2IntValMap getProp2IntValMap() {
-        return this.prop2IntValMap;
+    public Prop2IntValIndexer getProp2IntValIndexer() {
+        return this.prop2IntValIndexer;
     }
 
     public List<PVEntry> getPVEntrys() {
@@ -186,11 +208,11 @@ public class Fastable<T> {
     }
 
     private void putSortableIndex(PVEntry pvEntry) {
-        if (this.prop2IntValMap == null) {
-            this.prop2IntValMap = new Prop2IntValMap();
+        if (this.prop2IntValIndexer == null) {
+            this.prop2IntValIndexer = new Prop2IntValIndexer();
         }
         if (pvEntry.getVal() instanceof Integer) {
-            this.prop2IntValMap.add(pvEntry.getKey(), (int) pvEntry.getVal());
+            this.prop2IntValIndexer.add(pvEntry.getKey(), (int) pvEntry.getVal());
         }
     }
 

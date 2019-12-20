@@ -29,7 +29,7 @@ public class Test_08 {
 
         Fastable<People> tp = new Fastable<People>(list);
         System.out.println("-------prop2IntValMap-------");
-        System.out.println(tp.getProp2IntValMap().toString());
+        System.out.println(tp.getProp2IntValIndexer().toString());
         System.out.println("-------find: -100 <= weight <= 60-------");
         List<People> query0 = tp.queryRange("weight", -100, 60, true, true).fetch();
         for (People p : query0)

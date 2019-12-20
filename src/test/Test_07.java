@@ -9,7 +9,7 @@ import test.bean.People;
 
 /**
  * Test_07
- * 可排序属性值（Integer）
+ * 可排序属性值（Integer 仅正数）
  */
 public class Test_07 {
 
@@ -29,7 +29,7 @@ public class Test_07 {
 
         Fastable<People> tp = new Fastable<People>(list);
         System.out.println("-------prop2IntValMap-------");
-        System.out.println(tp.getProp2IntValMap().toString());
+        System.out.println(tp.getProp2IntValIndexer().toString());
         System.out.println("-------find: 100 <=stature <= 170-------");
         List<People> query0 = tp.queryRange("stature", 100, 170, true, true).fetch();
         for (People p : query0)

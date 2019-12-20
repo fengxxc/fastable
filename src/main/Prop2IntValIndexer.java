@@ -9,9 +9,9 @@ import main.sortable.ISortableSet;
 import main.sortable.SortableIntegerSet;
 
 /**
- * Prop2IntValMap
+ * Prop2IntValIndexer
  */
-public class Prop2IntValMap {
+public class Prop2IntValIndexer {
 
     /**
      * 数值型的
@@ -19,11 +19,11 @@ public class Prop2IntValMap {
      */
     private Map<String, ISortableSet<Integer>> intM;
 
-    public Prop2IntValMap() {
+    public Prop2IntValIndexer() {
         intM = new HashMap<String, ISortableSet<Integer>>();
     }
 
-    public Prop2IntValMap(int initialCapacity) {
+    public Prop2IntValIndexer(int initialCapacity) {
         intM = new HashMap<String, ISortableSet<Integer>>(initialCapacity);
     }
 
