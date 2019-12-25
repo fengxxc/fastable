@@ -23,6 +23,7 @@ public class Fastable<T> {
     private String uniqueProperty;
     private long tempRowIndex = 0;
     private String rawDataType;
+    private Map<String, Method> propRMethods; // 属性名: 方法类
 
     private final static String DFT_ROWID = ".ROWID";
     public final static String MAP = "MAP";
@@ -51,7 +52,6 @@ public class Fastable<T> {
             // initForJavaBean
             this.rawDataType = BEAN;
             List<T> _data = data;
-            Map<String, Method> propRMethods; // 属性名: 方法类
             try {
                 propRMethods = Utils.GetPropReadMethods(Utils.GetBeanPropDesc(this.classT));
             } catch (IntrospectionException e) {
@@ -62,7 +62,7 @@ public class Fastable<T> {
             this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
             this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
             for (Object bean : _data) {
-                addData(propRMethods, bean);
+                addData(bean);
             }
         }
     }
@@ -100,7 +100,7 @@ public class Fastable<T> {
         // System.out.println("----------------------------------");
     }
 
-    public void addData(Map<String, Method> propRMethods, Object bean) {
+    public void addData(Object bean) {
         // 唯一列（索引列）的值
         Object indexVal = null;
         if (!DFT_ROWID.equals(this.uniqueProperty)) {
