@@ -5,17 +5,25 @@ import java.util.BitSet;
 import java.util.List;
 
 /**
- * IndexSet
+ * LinkedIdSet
  */
 public class LinkedIdSet {
 
     private int id;
-    private BitSet linkdIds;
+    private BitSet linkedIds;
     
-
-    public LinkedIdSet(int id, BitSet linkdIds) {
+    public LinkedIdSet(int id) {
         this.id = id;
-        this.linkdIds = linkdIds;
+        this.linkedIds = new BitSet();
+    }
+
+    public LinkedIdSet(int id, int... linkdIds) {
+        this.id = id;
+        BitSet linkedIds = new BitSet();
+        for (int i = 0; i < linkdIds.length; i++) {
+            linkedIds.set(linkdIds[i]);
+        }
+        this.linkedIds = linkedIds;
     }
 
     /**
@@ -35,18 +43,20 @@ public class LinkedIdSet {
      * @return the indexs
      */
     public BitSet getLinkedIds() {
-        return linkdIds;
+        return linkedIds;
     }
     /**
      * @param linkdIds the linkdIds to set
      */
     public LinkedIdSet setLinkdIds(BitSet linkdIds) {
-        this.linkdIds = linkdIds;
+        this.linkedIds = linkdIds;
         return this;
     }
 
-    public void addLinkedIds(Integer index) {
-        this.linkdIds.set(index);
+    public LinkedIdSet addLinkedIds(int... linkedIds) {
+        for (int i = 0; i < linkedIds.length; i++)
+            this.linkedIds.set(linkedIds[i]);
+        return this;
     }
 
     public BitSet getAllIds() {

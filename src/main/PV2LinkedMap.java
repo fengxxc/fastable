@@ -34,10 +34,15 @@ public class PV2LinkedMap {
     }
 
     public LinkedIdSet put(PVEntry pvEntry, LinkedIdSet linkedIdSet) {
-        return m.put(pvEntry, linkedIdSet);
+        m.put(pvEntry, linkedIdSet);
+        return linkedIdSet;
     }
 
     public Set<Entry<PVEntry, LinkedIdSet>> entrySet() {
         return m.entrySet();
+    }
+
+    public LinkedIdSet add(PVEntry pvEntry, int... linkedEntryId) {
+        return get(pvEntry).addLinkedIds(linkedEntryId);
     }
 }

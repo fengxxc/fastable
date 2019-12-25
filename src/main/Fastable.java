@@ -5,7 +5,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,21 +100,6 @@ public class Fastable<T> {
         // System.out.println("----------------------------------");
     }
 
-    private void initForJavaBean(List<T> beans) {
-        Map<String, Method> propRMethods; // 属性名: 方法类
-        try {
-            propRMethods = Utils.GetPropReadMethods(Utils.GetBeanPropDesc(this.classT));
-        } catch (IntrospectionException e1) {
-            e1.printStackTrace(); return;
-        }
-        int capacity = propRMethods.size() * beans.size();
-        this.pvEntrys = new ArrayList<PVEntry>((int) (capacity * 0.75F));
-        this.pv2linkedMap = new PV2LinkedMap(capacity + 1);
-        for (Object bean : beans) {
-            addData(propRMethods, bean);
-        }
-    }
-
     public void addData(Map<String, Method> propRMethods, Object bean) {
         // 唯一列（索引列）的值
         Object indexVal = null;
@@ -182,19 +166,15 @@ public class Fastable<T> {
     }
 
     private void putRepeatableData(PVEntry indexEntry, int indexEntryId, PVEntry pvEntry) {
-        LinkedIdSet dataLinkedIds = null;
         if (this.pv2linkedMap.containsKey(pvEntry)) {
-            dataLinkedIds = this.pv2linkedMap.get(pvEntry);
-            dataLinkedIds.addLinkedIds(indexEntryId);
+            LinkedIdSet dataLinkedIds = this.pv2linkedMap.add(pvEntry, indexEntryId);
+            this.pv2linkedMap.add(indexEntry, dataLinkedIds.getId());
         } else {
             this.pvEntrys.add(pvEntry);
-            BitSet linkedIds = new BitSet();
-            linkedIds.set(indexEntryId);
-            dataLinkedIds = new LinkedIdSet(getPVEntrySize() - 1, linkedIds);
-            this.pv2linkedMap.put(pvEntry, dataLinkedIds);
+            LinkedIdSet dataLinkedIds = this.pv2linkedMap.put(pvEntry, new LinkedIdSet(getPVEntrySize() - 1, indexEntryId));
+            this.pv2linkedMap.add(indexEntry, dataLinkedIds.getId());
             putSortableIndex(pvEntry);
         }
-        this.pv2linkedMap.get(indexEntry).addLinkedIds(dataLinkedIds.getId());
     }
 
     private void putUniqueData(PVEntry pvEntry) throws RepeatKeyException {
@@ -202,7 +182,7 @@ public class Fastable<T> {
             throw new RepeatKeyException("{" + this.uniqueProperty + ": " + pvEntry.getVal().toString() + "} 唯一列值出现重复");
         } else {
             this.pvEntrys.add(pvEntry);
-            this.pv2linkedMap.put(pvEntry, new LinkedIdSet(getPVEntrySize() - 1, new BitSet()));
+            this.pv2linkedMap.put(pvEntry, new LinkedIdSet(getPVEntrySize() - 1));
             putSortableIndex(pvEntry);
         }
     }
