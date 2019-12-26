@@ -28,7 +28,7 @@ public class Finder<T> {
             property = Utils.FristChartoLower(property);
         }
         BitSet findIds = new BitSet();
-        LinkedIdSet linkedIdSet = fstb.getPv2linkedMap().get(property, value);
+        LinkedIdSet linkedIdSet = fstb.getPv2linkedMap().getLinked(property, value);
         if (linkedIdSet == null) {
             return findIds;
         }
@@ -140,8 +140,8 @@ public class Finder<T> {
     }
 
     private void wrapObj(List<T> res, Integer indexId) throws InstantiationException, IllegalAccessException {
-        PVEntry iEntry = fstb.getPVEntrys().get(indexId);
-        BitSet pvEntryIds = fstb.getPv2linkedMap().get(iEntry).getAllIds();
+        PVEntry iEntry = fstb.getPv2linkedMap().getPV(indexId);
+        BitSet pvEntryIds = fstb.getPv2linkedMap().getLinked(iEntry).getAllIds();
         T resObj = null;
         resObj = fstb.generateObj(Utils.BitSetToIntegerArray(pvEntryIds));
         res.add(resObj);
