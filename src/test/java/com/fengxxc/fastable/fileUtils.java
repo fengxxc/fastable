@@ -1,4 +1,4 @@
-package test;
+package com.fengxxc.fastable;
 
 import java.beans.PropertyDescriptor;
 import java.io.BufferedReader;
@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import main.Utils;
-import test.bean.People;
+import com.fengxxc.fastable.bean.People;
 
 /**
  * fileUtils
@@ -50,9 +49,9 @@ public class fileUtils {
                     if (propDesc.getPropertyType().toString().equals("int")) {
                         ite = Integer.valueOf((String) ite);
                     }
-                    System.out.print(propDesc.getPropertyType() + " :: ");
-                    System.out.print(columns[i] + " :: ");
-                    System.out.println(ite);
+//                    System.out.print(propDesc.getPropertyType() + " :: ");
+//                    System.out.print(columns[i] + " :: ");
+//                    System.out.println(ite);
                     propDesc.getWriteMethod().invoke(bean, ite);
                 }
                 list.add(bean);

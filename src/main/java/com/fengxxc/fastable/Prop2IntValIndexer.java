@@ -1,15 +1,15 @@
-package main;
+package com.fengxxc.fastable;
+
+import com.fengxxc.fastable.sortable.ISortableSet;
+import com.fengxxc.fastable.sortable.SortableIntegerSet;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import main.sortable.ISortableSet;
-import main.sortable.SortableIntegerSet;
-
 /**
- * Prop2IntValIndexer
+ * com.fengxxc.fastable.Prop2IntValIndexer
  */
 public class Prop2IntValIndexer {
 

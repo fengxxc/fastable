@@ -1,4 +1,4 @@
-package main;
+package com.fengxxc.fastable;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import exception.RepeatKeyException;
+import com.fengxxc.fastable.exception.RepeatKeyException;
 
 /**
- * Fastable
+ * com.fengxxc.fastable.Fastable
  */
 public class Fastable<T> {
 

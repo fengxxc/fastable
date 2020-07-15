@@ -1,13 +1,13 @@
-package main;
+package com.fengxxc.fastable;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import main.sortable.ISortableSet;
+import com.fengxxc.fastable.sortable.ISortableSet;
 
 /**
- * Finder
+ * com.fengxxc.fastable.Finder
  */
 public class Finder<T> {
 
@@ -108,7 +108,6 @@ public class Finder<T> {
         BitSet findIds = new BitSet();
 
         rangeVal.forEach((v, i) -> {
-            System.out.println("~~~~~" + v);
             findIds.or(findLinkedIds(sortableProperty, v));
             return true;
         });

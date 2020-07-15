@@ -1,4 +1,4 @@
-package main;
+package com.fengxxc.fastable;
 
 public class PVEntry {
     private static final String INDEX = "_index_";

@@ -1,4 +1,4 @@
-package main.sortable;
+package com.fengxxc.fastable.sortable;
 
 /**
  * ISortableSet

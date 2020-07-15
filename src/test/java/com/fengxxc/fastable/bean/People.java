@@ -1,4 +1,4 @@
-package test.bean;
+package com.fengxxc.fastable.bean;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

@@ -1,11 +1,11 @@
-package main;
+package com.fengxxc.fastable;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
 /**
- * LinkedIdSet
+ * com.fengxxc.fastable.LinkedIdSet
  */
 public class LinkedIdSet {
 

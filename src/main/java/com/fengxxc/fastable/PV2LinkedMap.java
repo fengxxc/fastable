@@ -1,4 +1,4 @@
-package main;
+package com.fengxxc.fastable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * PV2LinkedMap
+ * com.fengxxc.fastable.PV2LinkedMap
  */
 public class PV2LinkedMap {
 

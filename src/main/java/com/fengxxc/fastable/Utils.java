@@ -1,18 +1,16 @@
-package main;
+package com.fengxxc.fastable;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
- * Utils
+ * com.fengxxc.fastable.Utils
  */
 public class Utils {
 
@@ -109,6 +107,10 @@ public class Utils {
                 nbs.set(i);
         }
         return nbs;
+    }
+
+    public static Date date(String dateStr) throws ParseException {
+        return new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
     }
 
     public static void main(String[] args) {
