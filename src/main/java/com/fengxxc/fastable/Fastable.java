@@ -17,7 +17,7 @@ public class Fastable<T> {
 
     private Class<T> classT;
     
-    private PV2LinkedMap pv2linkedMap;
+    private PV2FieldsRefMap pv2FieldsRefMap;
     private Prop2IntValIndexer prop2IntValIndexer;
     private String uniqueProperty;
     private long tempRowIndex = 0;
@@ -43,7 +43,7 @@ public class Fastable<T> {
             List<Map<String, Object>> _data = (List<Map<String, Object>>) data;
             int capacity = _data.get(0).size() * _data.size();
             
-            this.pv2linkedMap = new PV2LinkedMap(capacity);
+            this.pv2FieldsRefMap = new PV2FieldsRefMap(capacity);
             for (Map<String, Object> m : _data) {
                 addData(m);
             }
@@ -58,7 +58,7 @@ public class Fastable<T> {
                 return;
             }
             int capacity = propRMethods.size() * _data.size();
-            this.pv2linkedMap = new PV2LinkedMap(capacity);
+            this.pv2FieldsRefMap = new PV2FieldsRefMap(capacity);
             for (Object bean : _data) {
                 addData(bean);
             }
@@ -70,8 +70,10 @@ public class Fastable<T> {
         Object indexVal;
         if (!DFT_ROWID.equals(this.uniqueProperty)) {
             indexVal = m.get(this.uniqueProperty);
-            if (indexVal == null)
+            if (indexVal == null) {
                 System.err.println("{" + this.uniqueProperty + "}唯一列值出现空值");
+                return;
+            }
         } else {
             indexVal = this.tempRowIndex;
             this.tempRowIndex++;
@@ -83,7 +85,7 @@ public class Fastable<T> {
             e1.printStackTrace();
             // return;
         }
-        int indexEntryId = this.pv2linkedMap.pvSize() - 1;
+        int indexEntryId = this.pv2FieldsRefMap.pvSize() - 1;
 
         // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
         for (Map.Entry<String, Object> pv : m.entrySet()) {
@@ -122,7 +124,7 @@ public class Fastable<T> {
             e1.printStackTrace();
             return;
         }
-        int indexEntryId = this.pv2linkedMap.pvSize() - 1;
+        int indexEntryId = this.pv2FieldsRefMap.pvSize() - 1;
 
         // System.out.println(uniqueProperty + " :: " + indexEntry.getVal());
         for (Map.Entry<String, Method> pm : propRMethods.entrySet()) {
@@ -147,8 +149,8 @@ public class Fastable<T> {
         return this.rawDataType;
     }
 
-    public PV2LinkedMap getPv2linkedMap() {
-        return this.pv2linkedMap;
+    public PV2FieldsRefMap getPv2FieldsRefMap() {
+        return this.pv2FieldsRefMap;
     }
 
     public Prop2IntValIndexer getProp2IntValIndexer() {
@@ -160,21 +162,21 @@ public class Fastable<T> {
     }
 
     private void putRepeatableData(PVEntry indexEntry, int indexEntryId, PVEntry pvEntry) {
-        if (this.pv2linkedMap.containsPV(pvEntry)) {
-            LinkedIdSet dataLinkedIds = this.pv2linkedMap.add(pvEntry, indexEntryId);
-            this.pv2linkedMap.add(indexEntry, dataLinkedIds.getId());
+        if (this.pv2FieldsRefMap.containsPV(pvEntry)) {
+            FieldsRefSet dataLinkedIds = this.pv2FieldsRefMap.add(pvEntry, indexEntryId);
+            this.pv2FieldsRefMap.add(indexEntry, dataLinkedIds.getPrimaryKeyRef());
         } else {
-            LinkedIdSet dataLinkedIds = this.pv2linkedMap.put(pvEntry, indexEntryId);
-            this.pv2linkedMap.add(indexEntry, dataLinkedIds.getId());
+            FieldsRefSet dataLinkedIds = this.pv2FieldsRefMap.put(pvEntry, indexEntryId);
+            this.pv2FieldsRefMap.add(indexEntry, dataLinkedIds.getPrimaryKeyRef());
             putSortableIndex(pvEntry);
         }
     }
 
     private void putUniqueData(PVEntry pvEntry) throws RepeatKeyException {
-        if (this.pv2linkedMap.containsPV(pvEntry)) {
+        if (this.pv2FieldsRefMap.containsPV(pvEntry)) {
             throw new RepeatKeyException("{" + this.uniqueProperty + ": " + pvEntry.getVal().toString() + "} 唯一列值出现重复");
         } else {
-            this.pv2linkedMap.put(pvEntry);
+            this.pv2FieldsRefMap.put(pvEntry);
             putSortableIndex(pvEntry);
         }
     }
@@ -192,7 +194,7 @@ public class Fastable<T> {
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        for (Map.Entry<PVEntry, LinkedIdSet> gm : this.pv2linkedMap.entrySet()) {
+        for (Map.Entry<PVEntry, FieldsRefSet> gm : this.pv2FieldsRefMap.entrySet()) {
             sb.append(gm.getKey().toString() + ": " + gm.getValue().toString() + "\n");
         }
         return sb.toString();
@@ -212,7 +214,7 @@ public class Fastable<T> {
         if (MAP.equals(this.rawDataType)) {
             Map<String, Object> resObj = new HashMap<String, Object>((int) (entryIds.length/0.75F + 1.0F));
             for (Integer eid : entryIds) {
-                PVEntry pvEntry = this.pv2linkedMap.getPV(eid);
+                PVEntry pvEntry = this.pv2FieldsRefMap.getPV(eid);
                 String prop = pvEntry.getKey();
                 if (DFT_ROWID.equals(this.uniqueProperty) && DFT_ROWID.equals(prop)) {
                     continue;
@@ -224,7 +226,7 @@ public class Fastable<T> {
         } else {
             T resObj = this.classT.newInstance();
             for (Integer eid : entryIds) {
-                PVEntry pvEntry = this.pv2linkedMap.getPV(eid);
+                PVEntry pvEntry = this.pv2FieldsRefMap.getPV(eid);
                 String prop = pvEntry.getKey();
                 if (DFT_ROWID.equals(this.uniqueProperty) && DFT_ROWID.equals(prop)) {
                     continue;
