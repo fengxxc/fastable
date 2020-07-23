@@ -12,55 +12,55 @@ import java.util.Set;
  */
 public class PV2FieldsRefMap {
 
-    private List<PVEntry> pvEntrys;
-    private Map<PVEntry, FieldsRefSet> pv2FieldsRef;
+    private List<KV> pv;
+    private Map<KV, FieldsRefSet> pv2FieldsRef;
 
-    public List<PVEntry> getPVEntrys() {
-        return pvEntrys;
+    public List<KV> getPVs() {
+        return pv;
     }
 
-    public PVEntry getPV(int index) {
-        return pvEntrys.get(index);
+    public KV getPV(int index) {
+        return pv.get(index);
     }
     
     public int pvSize() {
-        return pvEntrys.size();
+        return pv.size();
     }
 
     public PV2FieldsRefMap() {
-        pvEntrys = new ArrayList<PVEntry>();
-        pv2FieldsRef = new HashMap<PVEntry, FieldsRefSet>();
+        pv = new ArrayList<>();
+        pv2FieldsRef = new HashMap<>();
     }
 
     public PV2FieldsRefMap(int initialCapacity) {
-        pvEntrys = new ArrayList<PVEntry>((int) (initialCapacity * 0.75F));
-        pv2FieldsRef = new HashMap<PVEntry, FieldsRefSet>(initialCapacity + 1);
+        pv = new ArrayList<>((int) (initialCapacity * 0.75F));
+        pv2FieldsRef = new HashMap<>(initialCapacity + 1);
     }
 
-    public boolean containsPV(PVEntry pv) {
+    public boolean containsPV(KV pv) {
         return pv2FieldsRef.containsKey(pv);
     }
 
-    public FieldsRefSet getFieldsRef(PVEntry pv) {
+    public FieldsRefSet getFieldsRef(KV pv) {
         return pv2FieldsRef.get(pv);
     }
 
     public FieldsRefSet getFieldsRef(String property, Object value) {
-        return getFieldsRef(new PVEntry(property, value));
+        return getFieldsRef(new KV(property, value));
     }
 
-    public FieldsRefSet put(PVEntry pv, int... fieldRefs) {
+    public FieldsRefSet put(KV pv, int... fieldRefs) {
         FieldsRefSet fieldsRefSet = new FieldsRefSet(pvSize(), fieldRefs);
-        pvEntrys.add(pv);
+        this.pv.add(pv);
         pv2FieldsRef.put(pv, fieldsRefSet);
         return fieldsRefSet;
     }
 
-    public FieldsRefSet add(PVEntry pv, int... fieldRefs) {
+    public FieldsRefSet add(KV pv, int... fieldRefs) {
         return getFieldsRef(pv).addFieldRefs(fieldRefs);
     }
 
-    public Set<Entry<PVEntry, FieldsRefSet>> entrySet() {
+    public Set<Entry<KV, FieldsRefSet>> entrySet() {
         return pv2FieldsRef.entrySet();
     }
 }

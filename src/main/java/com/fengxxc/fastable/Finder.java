@@ -138,10 +138,9 @@ public class Finder<T> {
     }
 
     private void wrapObj(List<T> res, Integer indexId) throws InstantiationException, IllegalAccessException {
-        PVEntry iEntry = fstb.getPv2FieldsRefMap().getPV(indexId);
+        KV<String, Object> iEntry = fstb.getPv2FieldsRefMap().getPV(indexId);
         BitSet pvEntryIds = fstb.getPv2FieldsRefMap().getFieldsRef(iEntry).getAllRefs();
-        T resObj = null;
-        resObj = fstb.generateObj(Utils.BitSetToIntegerArray(pvEntryIds));
+        T resObj = fstb.generateObj(Utils.BitSetToIntegerArray(pvEntryIds));
         res.add(resObj);
     }
     

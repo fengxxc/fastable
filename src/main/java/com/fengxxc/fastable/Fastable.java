@@ -78,7 +78,7 @@ public class Fastable<T> {
             indexVal = this.tempRowIndex;
             this.tempRowIndex++;
         }
-        PVEntry indexEntry = new PVEntry(this.uniqueProperty, indexVal, true);
+        KV<String, Object> indexEntry = new KV<>(this.uniqueProperty, indexVal, true);
         try {
             putUniqueData(indexEntry);
         } catch (RepeatKeyException e1) {
@@ -93,7 +93,7 @@ public class Fastable<T> {
             if (prop.equals(this.uniqueProperty))
                 continue;
             Object val = pv.getValue();
-            PVEntry pvEntry = new PVEntry(prop, val);
+            KV<String, Object> pvEntry = new KV<>(prop, val);
             putRepeatableData(indexEntry, indexEntryId, pvEntry);
             // System.out.println(prop + " :: " + val);
         }
@@ -117,7 +117,7 @@ public class Fastable<T> {
             this.tempRowIndex++;
         }
             
-        PVEntry indexEntry = new PVEntry(Utils.FristChartoLower(this.uniqueProperty), indexVal, true);
+        KV<String, Object> indexEntry = new KV<>(Utils.FristChartoLower(this.uniqueProperty), indexVal, true);
         try {
             putUniqueData(indexEntry);
         } catch (RepeatKeyException e1) {
@@ -138,8 +138,8 @@ public class Fastable<T> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            PVEntry pvEntry = new PVEntry(prop, val);
-            putRepeatableData(indexEntry, indexEntryId, pvEntry);
+            KV<String, Object> pv = new KV<>(prop, val);
+            putRepeatableData(indexEntry, indexEntryId, pv);
             // System.out.println(prop + " :: " + val);
         }
         // System.out.println("----------------------------------");
@@ -161,47 +161,47 @@ public class Fastable<T> {
         return uniqueProperty;
     }
 
-    private void putRepeatableData(PVEntry indexEntry, int indexEntryId, PVEntry pvEntry) {
-        if (this.pv2FieldsRefMap.containsPV(pvEntry)) {
-            FieldsRefSet dataLinkedIds = this.pv2FieldsRefMap.add(pvEntry, indexEntryId);
-            this.pv2FieldsRefMap.add(indexEntry, dataLinkedIds.getPrimaryKeyRef());
+    private void putRepeatableData(KV<String, Object> indexPv, int indexEntryId, KV<String, Object> pv) {
+        if (this.pv2FieldsRefMap.containsPV(pv)) {
+            FieldsRefSet dataLinkedIds = this.pv2FieldsRefMap.add(pv, indexEntryId);
+            this.pv2FieldsRefMap.add(indexPv, dataLinkedIds.getPrimaryKeyRef());
         } else {
-            FieldsRefSet dataLinkedIds = this.pv2FieldsRefMap.put(pvEntry, indexEntryId);
-            this.pv2FieldsRefMap.add(indexEntry, dataLinkedIds.getPrimaryKeyRef());
-            putSortableIndex(pvEntry);
+            FieldsRefSet dataLinkedIds = this.pv2FieldsRefMap.put(pv, indexEntryId);
+            this.pv2FieldsRefMap.add(indexPv, dataLinkedIds.getPrimaryKeyRef());
+            putSortableIndex(pv);
         }
     }
 
-    private void putUniqueData(PVEntry pvEntry) throws RepeatKeyException {
-        if (this.pv2FieldsRefMap.containsPV(pvEntry)) {
-            throw new RepeatKeyException("{" + this.uniqueProperty + ": " + pvEntry.getVal().toString() + "} 唯一列值出现重复");
+    private void putUniqueData(KV<String, Object> pv) throws RepeatKeyException {
+        if (this.pv2FieldsRefMap.containsPV(pv)) {
+            throw new RepeatKeyException("{" + this.uniqueProperty + ": " + pv.getVal().toString() + "} 唯一列值出现重复");
         } else {
-            this.pv2FieldsRefMap.put(pvEntry);
-            putSortableIndex(pvEntry);
+            this.pv2FieldsRefMap.put(pv);
+            putSortableIndex(pv);
         }
     }
 
-    private void putSortableIndex(PVEntry pvEntry) {
+    private void putSortableIndex(KV<String, Object> pv) {
         if (this.prop2IntValIndexer == null) {
             this.prop2IntValIndexer = new Prop2IntValIndexer();
         }
-        if (pvEntry.getVal() instanceof Integer) {
-            this.prop2IntValIndexer.add(pvEntry.getKey(), (int) pvEntry.getVal());
+        if (pv.getVal() instanceof Integer) {
+            this.prop2IntValIndexer.add(pv.getKey(), (int) pv.getVal());
         }
     }
 
 
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
-        for (Map.Entry<PVEntry, FieldsRefSet> gm : this.pv2FieldsRefMap.entrySet()) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<KV, FieldsRefSet> gm : this.pv2FieldsRefMap.entrySet()) {
             sb.append(gm.getKey().toString() + ": " + gm.getValue().toString() + "\n");
         }
         return sb.toString();
     }
 
     public Finder<T> query(String property, Object value) {
-        return new Finder<T>(this, property, value);
+        return new Finder<>(this, property, value);
     }
 
     public Finder<T> queryRange(String sortableProperty, int start, int end, boolean includeStart, boolean includeEnd) {
@@ -212,26 +212,26 @@ public class Fastable<T> {
     @SuppressWarnings("unchecked")
     public T generateObj(int[] entryIds) throws InstantiationException, IllegalAccessException {
         if (MAP.equals(this.rawDataType)) {
-            Map<String, Object> resObj = new HashMap<String, Object>((int) (entryIds.length/0.75F + 1.0F));
+            Map<String, Object> resObj = new HashMap<>((int) (entryIds.length / 0.75F + 1.0F));
             for (Integer eid : entryIds) {
-                PVEntry pvEntry = this.pv2FieldsRefMap.getPV(eid);
-                String prop = pvEntry.getKey();
+                KV<String, Object> pv = this.pv2FieldsRefMap.getPV(eid);
+                String prop = pv.getKey();
                 if (DFT_ROWID.equals(this.uniqueProperty) && DFT_ROWID.equals(prop)) {
                     continue;
                 }
-                Object val = pvEntry.getVal();
+                Object val = pv.getVal();
                 resObj.put(prop, val);
             }
             return (T) resObj;
         } else {
             T resObj = this.classT.newInstance();
             for (Integer eid : entryIds) {
-                PVEntry pvEntry = this.pv2FieldsRefMap.getPV(eid);
-                String prop = pvEntry.getKey();
+                KV<String, Object> pv = this.pv2FieldsRefMap.getPV(eid);
+                String prop = pv.getKey();
                 if (DFT_ROWID.equals(this.uniqueProperty) && DFT_ROWID.equals(prop)) {
                     continue;
                 }
-                Object val = pvEntry.getVal();
+                Object val = pv.getVal();
                 PropertyDescriptor propDesc;
                 try {
                     propDesc = new PropertyDescriptor(prop, this.classT);
